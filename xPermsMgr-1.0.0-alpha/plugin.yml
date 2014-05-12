@@ -1,0 +1,24 @@
+name: xPermsMgr
+main: _64FF00\xPermsMgr\xPermsMgr
+version: 1.0.0
+api: [1.0.0]
+load: STARTUP
+author: 64FF00
+description: Custom Permissions Plugin for PocketMine!
+website: https://github.com/64FF00/xPermsMgr
+commands:
+ xpmgr:
+  description: Main Command of xPermsMgr!
+  usage: "/xpmgr <>"
+  permission: xpmgr.command.maincmd
+permissions:
+ xpermsmgr:
+  default: op
+  description: "Allows the user to use all the xPermsMgr things."
+   xpmgr.command:
+    default: op
+    description: "Allows the user to use all the xPermsMgr commands."
+    children:
+     xpmgr.command.maincmd:
+      default: op
+      description: "Allows the user to manage other users' permissions."
