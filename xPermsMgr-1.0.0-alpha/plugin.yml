@@ -9,16 +9,17 @@ website: https://github.com/64FF00/xPermsMgr
 commands:
  xpmgr:
   description: Main Command of xPermsMgr!
-  usage: "/xpmgr <>"
+  usage: "/xpmgr <groups / reload / setrank / users>"
   permission: xpmgr.command.maincmd
 permissions:
  xpermsmgr:
   default: op
-  description: "Allows the user to use all the xPermsMgr things."
+  description: "Allows the user to use all the xPermsMgr things!"
+  children:
    xpmgr.command:
     default: op
-    description: "Allows the user to use all the xPermsMgr commands."
+    description: "Allows the user to use all the xPermsMgr commands!"
     children:
      xpmgr.command.maincmd:
       default: op
-      description: "Allows the user to manage other users' permissions."
+      description: "Allows the user to manage other users' permissions!"
