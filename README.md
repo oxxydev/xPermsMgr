@@ -15,8 +15,9 @@ Current Features
 Commands
 ========
 
-|   | Command | Parameters |
-| 1 | /xpmgr groups | - |
-| 2 | /xpmgr reload | - |
-| 3 | /xpmgr setrank | [USER_NAME], [GROUP_NAME] |
-| 4 | /xpmgr users | [GROUP_NAME] |
+ Command | Parameters | Description
+---------|------------|-------------
+ /xpmgr groups | - | -
+ /xpmgr reload | - | -
+ /xpmgr setrank | [USER_NAME], [GROUP_NAME] | -
+ /xpmgr users | [GROUP_NAME] | -
