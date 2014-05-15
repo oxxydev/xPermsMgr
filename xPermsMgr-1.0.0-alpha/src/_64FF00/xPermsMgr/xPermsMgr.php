@@ -23,6 +23,8 @@ use pocketmine\utils\TextFormat;
 
 class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 {
+	private $output;
+	
 	public function onEnable()
 	{
 		@mkdir($this->getDataFolder() . "players/", 0777, true);
@@ -154,7 +156,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	private function isValidGroup($groupName)
 	{
-		return isset($this->groups[$groupName]);
+		return isset($groupName) ? isset($this->groups[$groupName]) : false;
 	}
 	
 	private function isValidGroupName($groupName)
@@ -218,7 +220,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	private function setPlayerRank($player, $groupName)
 	{		
-		if($this->isValidGroup($groupName))
+		if($player != null and $this->isValidGroup($groupName))
 		{
 			$user_cfg = $this->getUserConfig($player);
 			
@@ -238,96 +240,93 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 		if(!isset($args[0]))
 		{
-			$sender->sendMessage("[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . "by " . $this->getDescription()->getAuthors() . "!");
+			$sender->sendMessage("[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . " by " . $this->getDescription()->getAuthors()[0] . "!");
 		}
-		
-		switch($args[0])
-		{				
-			case "groups":
-				
-				foreach($this->getAllGroups() as $group)
-				{
-					$output .= $group . ", ";
-				}
-
-				$output = substr($output, 0, -2);
-
-				$sender->sendMessage("[xPermsMgr] List of all groups: " . $output);
+		else
+		{	
+			switch($args[0])
+			{				
+				case "groups":
 					
-				break;
-					
-			case "reload":
-				
-				$this->loadAllGroups();
-				$this->loadConfigFile();
-						
-				$sender->sendMessage("[xPermsMgr] Successfully reloaded the config files.");
-						
-				break;
-					
-			case "setrank":
-				
-				if(count($args) > 4)
-				{
-					$sender->sendMessage("[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
-						
-					break;
-				}
-					
-				if(!isset($args[1]))
-				{
-					$sender->sendMessage("[xPermsMgr] ERROR: Invalid Player!");
-				}
-					
-				$target = $this->getServer()->getPlayer($args[1]);
-					
-				if(isset($args[2]) and $this->isValidGroup($args[2]))
-				{					
-					$this->setPlayerRank($target, $args[2]);
-						
-					$message = str_replace("{RANK}", strtolower($args[2]), $this->config["message-on-rank-change"]);
-							
-					$sender->sendMessage("[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
-					$target->sendMessage("[xPermsMgr] " . $message);				
-				}
-				else
-				{
-					$sender->sendMessage("[xPermsMgr] ERROR: Invalid Group!");
-				}		
-				
-				break;
-					
-			case "users":
-				
-				if(count($args) > 3)
-				{
-					$sender->sendMessage("[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
-						
-					break;
-				}
-					
-				if(isset($args[1]) and $this->isValidGroup($args[1]))
-				{
-					foreach($this->getAllUserConfigFiles() as $user_cfg)
+					foreach($this->getAllGroups() as $group)
 					{
-						$user_cfg = new Config($this->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
-						));
+						$output .= $group . ", ";
+					}
+
+					$output = substr($output, 0, -2);
+
+					$sender->sendMessage("[xPermsMgr] List of all groups: " . $output);
+						
+					break;
+						
+				case "reload":
+					
+					$this->loadAllGroups();
+					$this->loadConfigFile();
 							
-						$output .= "[xPermsMgr] <" . $user_cfg->get("group") . "> ". $user_cfg->get("username") . "\n";
+					$sender->sendMessage("[xPermsMgr] Successfully reloaded the config files.");
+							
+					break;
+						
+				case "setrank":
+					
+					if(count($args) > 4)
+					{
+						$sender->sendMessage("[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
+							
+						break;
+					}
+					
+					$target = $this->getServer()->getOfflinePlayer($args[1]);
+						
+					if($this->isValidGroup($args[2]))
+					{					
+						$this->setPlayerRank($target, $args[2]);
+							
+						$message = str_replace("{RANK}", strtolower($args[2]), $this->config["message-on-rank-change"]);
+								
+						$sender->sendMessage("[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
+						$target->sendMessage("[xPermsMgr] " . $message);				
+					}
+					else
+					{
+						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Group!");
+					}		
+					
+					break;
+						
+				case "users":
+					
+					if(count($args) > 3)
+					{
+						$sender->sendMessage("[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
+							
+						break;
 					}
 						
-					$sender->sendMessage("[xPermsMgr] All players in this group: \n" . $output);
-				}
-				else
-				{
-					$sender->sendMessage("[xPermsMgr] ERROR: Invalid Group!");
-				}
-					
-				break;
+					if(isset($args[1]) and $this->isValidGroup($args[1]))
+					{
+						foreach($this->getAllUserConfigFiles() as $user_cfg)
+						{
+							$user_cfg = new Config($this->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
+							));
+								
+							$output .= "[xPermsMgr] <" . $user_cfg->get("group") . "> ". $user_cfg->get("username") . "\n";
+						}
+							
+						$sender->sendMessage("[xPermsMgr] All players in this group: \n" . $output);
+					}
+					else
+					{
+						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Group!");
+					}
 						
-			default:
-						
-				$sender->sendMessage("[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
+					break;
+							
+				default:
+							
+					$sender->sendMessage("[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
+			}
 		}
 		
 		return true;
