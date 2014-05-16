@@ -23,7 +23,7 @@ use pocketmine\utils\TextFormat;
 
 class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 {
-	private $output;
+	private $output = "";
 	
 	public function onEnable()
 	{
@@ -63,15 +63,22 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 	}
 	
-	private function checkPerm($player, $permission)
+	private function checkPerm(Player $player, $permission)
 	{		
 		$all_perms = $this->getAllPlayerPermissions($player);
 		
-		if($player instanceof Player)
+		if(isset($all_perms[$permission->getName()]) and $player->hasPermission($permission))
 		{
+			return true;
 		}
-		
-		return false;
+		elseif($this->config["enable-op-override"] == true and $player->isOp())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	private function getAllGroups()
@@ -116,7 +123,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	private function getDefaultGroup()
 	{
-		foreach($this->getAllGroups as $group)
+		foreach($this->getAllGroups() as $group)
 		{
 			if(isset($this->groups[$group]["default-group"]) and $this->groups[$group]["default-group"])
 			{
@@ -174,6 +181,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					"inheritance" => array(
 					),
 					"permissions" => array(
+						"pocketmine.broadcast.user" => true,
+						"pocketmine.command.help" => true,
+						"pocketmine.command.kill" => true,
+						"pocketmine.command.list" => true,
+						"pocketmine.command.me" => true,
+						"pocketmine.command.tell" => true,
+						"pocketmine.command.version" => true,
 					)
 				),
 				"Mod" => array(
@@ -181,6 +195,14 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						"Default"
 					),
 					"permissions" => array(
+						"pocketmine.broadcast" => true,
+						"pocketmine.command.gamemode" => true,
+						"pocketmine.command.give" => true,
+						"pocketmine.command.kick" => true,
+						"pocketmine.command.plugins" => true,
+						"pocketmine.command.say" => true,
+						"pocketmine.command.teleport" => true,
+						"pocketmine.command.time" => true,
 					)
 				),
 				"Admin" => array(
@@ -188,6 +210,10 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						"Default", "Mod"
 					),
 					"permissions" => array(
+						"pocketmine.command.ban" => true,
+						"pocketmine.command.status" => true,
+						"pocketmine.command.unban" => true,
+						"pocketmine.command.whitelist" => true,
 					)
 				),
 				"Owner" => array(
@@ -195,6 +221,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						"Default", "Mod", "Admin"
 					),
 					"permissions" => array(
+						"pocketmine.broadcast" => true,
+						"pocketmine.command" => true,
+						"xpmgr.command.maincmd" => true,
 					)
 				),
 			)))->getAll();
@@ -220,13 +249,15 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	private function setPlayerRank($player, $groupName)
 	{		
-		if($player != null and $this->isValidGroup($groupName))
+		if($this->isValidGroup($groupName))
 		{
 			$user_cfg = $this->getUserConfig($player);
 			
 			$user_cfg->set("group", $groupName);	
 			
 			$user_cfg->save();
+			
+			unset($user_cfg);
 			
 			return true;
 		}
@@ -277,16 +308,25 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						break;
 					}
 					
+					if(!isset($args[1]))
+					{
+						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Player!");
+					}
+					
 					$target = $this->getServer()->getOfflinePlayer($args[1]);
 						
-					if($this->isValidGroup($args[2]))
+					if(isset($args[2]) and $this->isValidGroup($args[2]))
 					{					
 						$this->setPlayerRank($target, $args[2]);
 							
 						$message = str_replace("{RANK}", strtolower($args[2]), $this->config["message-on-rank-change"]);
 								
 						$sender->sendMessage("[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
-						$target->sendMessage("[xPermsMgr] " . $message);				
+						
+						if($target instanceof Player)
+						{
+							$target->sendMessage("[xPermsMgr] " . $message);
+						}
 					}
 					else
 					{
@@ -315,6 +355,8 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						}
 							
 						$sender->sendMessage("[xPermsMgr] All players in this group: \n" . $output);
+						
+						unset($user_cfg);
 					}
 					else
 					{
