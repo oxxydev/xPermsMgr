@@ -23,8 +23,6 @@ use pocketmine\utils\TextFormat;
 
 class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 {
-	private $output = "";
-	
 	public function onEnable()
 	{
 		@mkdir($this->getDataFolder() . "players/", 0777, true);
@@ -63,7 +61,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 	}
 	
-	private function checkPerm(Player $player, $permission)
+	private function checkPerm($player, $permission)
 	{		
 		$all_perms = $this->getAllPlayerPermissions($player);
 		
@@ -108,17 +106,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	private function getAllUserConfigFiles()
 	{
-		$cfg_files = scandir($this->getDataFolder() . "players/");
-					
-		foreach($cfg_files as $cfg_file)
-		{
-			if(is_dir($cfg_file))
-			{
-				unset($cfg_file);
-			}
-		}
-		
-		return $cfg_files;
+		return array_diff(scandir($this->getDataFolder() . "players/"), array(".", "..", ""));
 	}
 	
 	private function getDefaultGroup()
@@ -274,7 +262,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 			$sender->sendMessage("[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . " by " . $this->getDescription()->getAuthors()[0] . "!");
 		}
 		else
-		{	
+		{
+			$output = "";
+
 			switch($args[0])
 			{				
 				case "groups":
@@ -311,6 +301,8 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					if(!isset($args[1]))
 					{
 						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Player!");
+						
+						break;
 					}
 					
 					$target = $this->getServer()->getOfflinePlayer($args[1]);
@@ -346,15 +338,15 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						
 					if(isset($args[1]) and $this->isValidGroup($args[1]))
 					{
-						foreach($this->getAllUserConfigFiles() as $user_cfg)
+						foreach($this->getAllUserConfigFiles() as $cfg_file)
 						{
-							$user_cfg = new Config($this->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
+							$user_cfg = new Config($this->getDataFolder() . "players/" . $cfg_file, Config::YAML, array(
 							));
 								
-							$output .= "[xPermsMgr] <" . $user_cfg->get("group") . "> ". $user_cfg->get("username") . "\n";
+							$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
 						}
 							
-						$sender->sendMessage("[xPermsMgr] All players in this group: \n" . $output);
+						$sender->sendMessage("[xPermsMgr] < All players in this group! > \n" . $output);
 						
 						unset($user_cfg);
 					}
