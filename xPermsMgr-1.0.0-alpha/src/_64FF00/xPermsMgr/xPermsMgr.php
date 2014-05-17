@@ -7,8 +7,10 @@ use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerRespawnEvent as PlayerSpawnEvent;
 
-use pocketmine\permission\Permission;
+use pocketmine\permission\PermissibleBase;
+use pocketmine\permission\PermissionAttachment;
 
 use pocketmine\Player;
 
@@ -45,6 +47,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 				
 				return false;
 		}
+	}
+	
+	public function onPlayerSpawn(PlayerSpawnEvent $event)
+	{
+		$this->setPlayerPermissions($event->getPlayer());
 	}
 	
 	private function getAllGroups()
@@ -87,8 +94,6 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 			}
 		}
 		
-		$sender->sendMessage("[xPermsMgr] ERROR: Can't find the default group.");
-		
 		return false;
 	}
 	
@@ -96,7 +101,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 		$cfg = $this->getUserConfig($player);
 		
-		return $cfg["group"];
+		return $cfg->getAll()["group"];
 	}
 	
 	private function getUserConfig($player)
@@ -210,6 +215,27 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		)))->getAll();
 	}
 	
+	private function setPlayerPermissions($player)
+	{
+		if($player instanceof Player)
+		{
+			foreach($this->getAllPlayerPermissions($player) as $permission)
+			{
+				$attachment = $player->addAttachment($this);
+				
+				$attachment->setPermission($permission, true);
+			}
+			
+			$player->removeAttachment($attachment);
+			
+			unset($attachment);
+			
+			return true;
+		}
+		 
+		return false;
+	}
+	
 	private function setPlayerRank($player, $groupName)
 	{		
 		if($this->isValidGroup($groupName))
@@ -223,11 +249,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 			unset($user_cfg);
 			
 			return true;
-		}
-		else
-		{	
-			return false;
-		}
+		}	
+		
+		return false;
 	}
 	
 	private function xPermsMgrCommand(CommandSender $sender, Command $cmd, $label, array $args)
@@ -254,13 +278,18 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					$sender->sendMessage("[xPermsMgr] List of all groups: " . $output);
 						
 					break;
-						
+					
 				case "reload":
 					
 					$this->loadAllGroups();
 					$this->loadConfigFile();
+					
+					foreach($this->getServer()->getOnlinePlayers() as $player)
+					{
+						$player->recalculatePermissions();
+					}
 							
-					$sender->sendMessage("[xPermsMgr] Successfully reloaded the config files.");
+					$sender->sendMessage("[xPermsMgr] Successfully reloaded the config files and player permissions.");
 							
 					break;
 						
@@ -285,6 +314,8 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					if(isset($args[2]) and $this->isValidGroup($args[2]))
 					{					
 						$this->setPlayerRank($target, $args[2]);
+						
+						$this->setPlayerPermissions($target);
 							
 						$message = str_replace("{RANK}", strtolower($args[2]), $this->config["message-on-rank-change"]);
 								
