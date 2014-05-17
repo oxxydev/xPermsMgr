@@ -220,8 +220,6 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 			
 			$user_cfg->save();
 			
-			$player->recalculatePermissions();
-			
 			unset($user_cfg);
 			
 			return true;
