@@ -7,8 +7,6 @@ use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
 use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
-use pocketmine\event\server\ServerCommandEvent;
 
 use pocketmine\permission\Permission;
 
@@ -30,6 +28,8 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		$this->loadAllGroups();
 		$this->loadConfigFile();
 		
+		$this->getServer()->getPluginManager()->registerEvents($this, $this);
+		
 		console(TextFormat::GREEN . "[INFO] xPermsMgr has been enabled.");
 	}
 	
@@ -44,38 +44,6 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 			default:
 				
 				return false;
-		}
-	}
-	
-	public function onPlayerCommand(PlayerCommandPreprocessEvent $event)
-	{
-		if($this->checkPerm($event->getMessage()->getPermission()))
-		{
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public function onServerCommand(ServerCommandEvent $event)
-	{
-	}
-	
-	private function checkPerm($player, $permission)
-	{		
-		$all_perms = $this->getAllPlayerPermissions($player);
-		
-		if(isset($all_perms[$permission->getName()]) and $player->hasPermission($permission))
-		{
-			return true;
-		}
-		elseif($this->config["enable-op-override"] == true and $player->isOp())
-		{
-			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 	
@@ -149,6 +117,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		}
 	}
 	
+	private function getValidPlayer($username)
+	{
+		$player = $this->getServer()->getPlayer($username);
+		
+		return $player instanceof Player ? $player : $this->getServer()->getOfflinePlayer($username);
+	}
+	
 	private function isValidGroup($groupName)
 	{
 		return isset($groupName) ? isset($this->groups[$groupName]) : false;
@@ -169,13 +144,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					"inheritance" => array(
 					),
 					"permissions" => array(
-						"pocketmine.broadcast.user" => true,
-						"pocketmine.command.help" => true,
-						"pocketmine.command.kill" => true,
-						"pocketmine.command.list" => true,
-						"pocketmine.command.me" => true,
-						"pocketmine.command.tell" => true,
-						"pocketmine.command.version" => true,
+						"pocketmine.broadcast.user",
+						"pocketmine.command.help",
+						"pocketmine.command.kill",
+						"pocketmine.command.list",
+						"pocketmine.command.me",
+						"pocketmine.command.tell",
+						"pocketmine.command.version",
 					)
 				),
 				"Mod" => array(
@@ -183,14 +158,14 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						"Default"
 					),
 					"permissions" => array(
-						"pocketmine.broadcast" => true,
-						"pocketmine.command.gamemode" => true,
-						"pocketmine.command.give" => true,
-						"pocketmine.command.kick" => true,
-						"pocketmine.command.plugins" => true,
-						"pocketmine.command.say" => true,
-						"pocketmine.command.teleport" => true,
-						"pocketmine.command.time" => true,
+						"pocketmine.broadcast",
+						"pocketmine.command.gamemode",
+						"pocketmine.command.give",
+						"pocketmine.command.kick",
+						"pocketmine.command.plugins",
+						"pocketmine.command.say",
+						"pocketmine.command.teleport",
+						"pocketmine.command.time",
 					)
 				),
 				"Admin" => array(
@@ -198,10 +173,10 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						"Default", "Mod"
 					),
 					"permissions" => array(
-						"pocketmine.command.ban" => true,
-						"pocketmine.command.status" => true,
-						"pocketmine.command.unban" => true,
-						"pocketmine.command.whitelist" => true,
+						"pocketmine.command.ban",
+						"pocketmine.command.status",
+						"pocketmine.command.unban",
+						"pocketmine.command.whitelist",
 					)
 				),
 				"Owner" => array(
@@ -209,9 +184,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						"Default", "Mod", "Admin"
 					),
 					"permissions" => array(
-						"pocketmine.broadcast" => true,
-						"pocketmine.command" => true,
-						"xpmgr.command.maincmd" => true,
+						"pocketmine.broadcast",
+						"pocketmine.command",
+						"xpmgr.command.main",
 					)
 				),
 			)))->getAll();
@@ -241,9 +216,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		{
 			$user_cfg = $this->getUserConfig($player);
 			
-			$user_cfg->set("group", $groupName);	
+			$user_cfg->set("group", $groupName);
 			
 			$user_cfg->save();
+			
+			$player->recalculatePermissions();
 			
 			unset($user_cfg);
 			
@@ -305,7 +282,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						break;
 					}
 					
-					$target = $this->getServer()->getOfflinePlayer($args[1]);
+					$target = $this->getValidPlayer($args[1]);
 						
 					if(isset($args[2]) and $this->isValidGroup($args[2]))
 					{					
@@ -342,11 +319,21 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						{
 							$user_cfg = new Config($this->getDataFolder() . "players/" . $cfg_file, Config::YAML, array(
 							));
-								
-							$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
+							
+							if($user_cfg->get("group") == $args[1])
+							{
+								$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
+							}
+						}
+						
+						if($output == "")
+						{
+							$sender->sendMessage("[xPermsMgr] There are no players in this group! \n" . $output);
+							
+							break;
 						}
 							
-						$sender->sendMessage("[xPermsMgr] < All players in this group! > \n" . $output);
+						$sender->sendMessage("[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP --> \n" . $output);
 						
 						unset($user_cfg);
 					}
