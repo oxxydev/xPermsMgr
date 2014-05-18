@@ -1,0 +1,43 @@
+---
+Default:
+  default-group: true
+  inheritance: []
+  permissions:
+  - pocketmine.broadcast.user
+  - pocketmine.command.help
+  - pocketmine.command.kill
+  - pocketmine.command.list
+  - pocketmine.command.me
+  - pocketmine.command.tell
+  - pocketmine.command.version
+Mod:
+  inheritance:
+  - Default
+  permissions:
+  - pocketmine.broadcast
+  - pocketmine.command.gamemode
+  - pocketmine.command.give
+  - pocketmine.command.kick
+  - pocketmine.command.plugins
+  - pocketmine.command.say
+  - pocketmine.command.teleport
+  - pocketmine.command.time
+Admin:
+  inheritance:
+  - Default
+  - Mod
+  permissions:
+  - pocketmine.command.ban
+  - pocketmine.command.status
+  - pocketmine.command.unban
+  - pocketmine.command.whitelist
+Owner:
+  inheritance:
+  - Default
+  - Mod
+  - Admin
+  permissions:
+  - pocketmine.broadcast
+  - pocketmine.command
+  - xpmgr.command.main
+...
