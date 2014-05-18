@@ -7,6 +7,7 @@ use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerRespawnEvent as PlayerSpawnEvent;
 
 use pocketmine\permission\PermissibleBase;
@@ -27,8 +28,8 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 		@mkdir($this->getDataFolder() . "players/", 0777, true);
 		
-		$this->loadAllGroups();
 		$this->loadConfigFile();
+		$this->loadAllGroups();
 		
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		
@@ -49,6 +50,26 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		}
 	}
 	
+	public function onPlayerChat(PlayerChatEvent $event)
+	{
+		$player = $event->getPlayer();
+		
+		$prefix = $this->getPrefix($this->getPlayerRank($player));
+		
+		$default_format = $event->getFormat();
+		
+		if(isset($prefix) and $prefix != null)
+		{	
+			$event->setFormat("<" . $prefix . " " . $player->getName() . "> " . $event->getMessage());
+		}
+		else
+		{
+			trigger_error("Invalid or empty prefix characters", E_USER_WARNING);
+			
+			$event->setFormat($default_format);
+		}
+	}
+	
 	public function onPlayerSpawn(PlayerSpawnEvent $event)
 	{
 		$this->setPlayerPermissions($event->getPlayer());
@@ -56,7 +77,17 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	private function getAllGroups()
 	{
-		return array_keys($this->groups);
+		$groups = array_keys($this->groups);
+		
+		foreach($groups as $group)
+		{
+			if(!($this->isValidGroupName($group)))
+			{
+				unset($group);
+			}
+		}
+		
+		return $groups;
 	}
 	
 	private function getAllPlayerPermissions($player)
@@ -104,6 +135,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		return $cfg->getAll()["group"];
 	}
 	
+	private function getPrefix($groupName)
+	{
+		return $this->groups[$groupName]["prefix"];
+	}
+	
 	private function getUserConfig($player)
 	{
 		$username = $player->getName();
@@ -112,7 +148,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		{
 			return new Config($this->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
 				"username" => $username,
-				"group" => $this->getDefaultGroup()
+				"group" => $this->getDefaultGroup(),
 			));
 		}
 		else
@@ -143,58 +179,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 		if(!(file_exists($this->getDataFolder() . "groups.yml")))
 		{
-			$this->groups = (new Config($this->getDataFolder() . "groups.yml", Config::YAML, array(
-				"Default" => array(
-					"default-group" => true,
-					"inheritance" => array(
-					),
-					"permissions" => array(
-						"pocketmine.broadcast.user",
-						"pocketmine.command.help",
-						"pocketmine.command.kill",
-						"pocketmine.command.list",
-						"pocketmine.command.me",
-						"pocketmine.command.tell",
-						"pocketmine.command.version",
-					)
-				),
-				"Mod" => array(
-					"inheritance" => array(
-						"Default"
-					),
-					"permissions" => array(
-						"pocketmine.broadcast",
-						"pocketmine.command.gamemode",
-						"pocketmine.command.give",
-						"pocketmine.command.kick",
-						"pocketmine.command.plugins",
-						"pocketmine.command.say",
-						"pocketmine.command.teleport",
-						"pocketmine.command.time",
-					)
-				),
-				"Admin" => array(
-					"inheritance" => array(
-						"Default", "Mod"
-					),
-					"permissions" => array(
-						"pocketmine.command.ban",
-						"pocketmine.command.status",
-						"pocketmine.command.unban",
-						"pocketmine.command.whitelist",
-					)
-				),
-				"Owner" => array(
-					"inheritance" => array(
-						"Default", "Mod", "Admin"
-					),
-					"permissions" => array(
-						"pocketmine.broadcast",
-						"pocketmine.command",
-						"xpmgr.command.main",
-					)
-				),
-			)))->getAll();
+			$this->saveResource("groups.yml");
 		}
 		
 		$this->groups = (new Config($this->getDataFolder() . "groups.yml", Config::YAML, array(
@@ -205,14 +190,10 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 		if(!(file_exists($this->getDataFolder() . "config.yml")))
 		{
-			$this->config = (new Config($this->getDataFolder() . "config.yml", Config::YAML, array(
-				"message-on-rank-change" => "Your rank has been changed into a / an {RANK}!",
-				"enable-op-override" => false
-			)))->getAll();
+			$this->saveDefaultConfig();
 		}
 		
-		$this->config = (new Config($this->getDataFolder() . "config.yml", Config::YAML, array(
-		)))->getAll();
+		$this->config = $this->getConfig()->getAll();
 	}
 	
 	private function setPlayerPermissions($player)
@@ -280,9 +261,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					break;
 					
 				case "reload":
-					
-					$this->loadAllGroups();
+				
+					@mkdir($this->getDataFolder() . "players/", 0777, true);
+				
 					$this->loadConfigFile();
+					$this->loadAllGroups();
 					
 					foreach($this->getServer()->getOnlinePlayers() as $player)
 					{

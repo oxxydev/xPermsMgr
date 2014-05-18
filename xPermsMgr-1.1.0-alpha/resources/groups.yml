@@ -1,5 +1,6 @@
 ---
 Default:
+  prefix: '[Default]'
   default-group: true
   inheritance: []
   permissions:
@@ -11,6 +12,7 @@ Default:
   - pocketmine.command.tell
   - pocketmine.command.version
 Mod:
+  prefix: '[Mod]'
   inheritance:
   - Default
   permissions:
@@ -23,6 +25,7 @@ Mod:
   - pocketmine.command.teleport
   - pocketmine.command.time
 Admin:
+  prefix: '[Admin]'
   inheritance:
   - Default
   - Mod
@@ -32,6 +35,7 @@ Admin:
   - pocketmine.command.unban
   - pocketmine.command.whitelist
 Owner:
+  prefix: '[Owner]'
   inheritance:
   - Default
   - Mod

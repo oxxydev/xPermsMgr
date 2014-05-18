@@ -1,6 +1,6 @@
 name: xPermsMgr
 main: _64FF00\xPermsMgr\xPermsMgr
-version: 1.0.0
+version: 1.1.0
 api: [1.0.0]
 load: STARTUP
 author: 64FF00
@@ -10,7 +10,7 @@ commands:
  xpmgr:
   description: Main Command of xPermsMgr!
   usage: "/xpmgr <groups / reload / setrank / users>"
-  permission: xpmgr.command.maincmd
+  permission: xpmgr.command.main
 permissions:
  xpermsmgr:
   default: op
@@ -20,6 +20,6 @@ permissions:
     default: op
     description: "Allows the user to use all the xPermsMgr commands!"
     children:
-     xpmgr.command.maincmd:
+     xpmgr.command.main:
       default: op
       description: "Allows the user to manage other users' permissions!"
