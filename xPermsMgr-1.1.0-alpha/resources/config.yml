@@ -1,4 +1,5 @@
 ---
+chat-format: '<{PREFIX} {USER_NAME}> {MESSAGE}'
 enable-op-override: false
 message-on-rank-change: Your rank has been changed into a / an {RANK}!
 ...
