@@ -52,22 +52,23 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
-		$player = $event->getPlayer();
-		
-		$prefix = $this->getPrefix($this->getPlayerRank($player));
-		
-		$default_format = $event->getFormat();
-		
-		if(isset($prefix) and $prefix != null)
-		{	
-			$event->setFormat("<" . $prefix . " " . $player->getName() . "> " . $event->getMessage());
+		if($this->config["chat-format"] != null)
+		{
+			$format = str_replace("{PREFIX}", $this->getPrefix($this->getPlayerRank($event->getPlayer())), str_replace(
+				"{USER_NAME}", $event->getPlayer()->getName(), str_replace(
+					"{SUFFIX}", $this->getSuffix($this->getPlayerRank($event->getPlayer())), str_replace(
+						"{MESSAGE}", $event->getMessage(), $this->config["chat-format"]
+						)
+					)
+				)
+			);
 		}
 		else
 		{
-			trigger_error("Invalid or empty prefix characters", E_USER_WARNING);
-			
-			$event->setFormat($default_format);
+			$this->config["chat-format"] = "<" . $event->getPlayer()->getName() . "> " . $event->getMessage();
 		}
+		
+		$event->setFormat($format);
 	}
 	
 	public function onPlayerSpawn(PlayerSpawnEvent $event)
@@ -138,6 +139,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	private function getPrefix($groupName)
 	{
 		return $this->groups[$groupName]["prefix"];
+	}
+	
+	private function getSuffix($groupName)
+	{
+		return $this->groups[$groupName]["suffix"];
 	}
 	
 	private function getUserConfig($player)
