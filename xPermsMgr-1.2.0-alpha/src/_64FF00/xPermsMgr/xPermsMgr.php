@@ -7,17 +7,14 @@ use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\player\PlayerRespawnEvent as PlayerSpawnEvent;
 
 use pocketmine\permission\PermissibleBase;
-use pocketmine\permission\PermissionAttachment;
 
 use pocketmine\Player;
 
 use pocketmine\plugin\PluginBase;
-
-use pocketmine\Server;
 
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
@@ -30,6 +27,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		
 		$this->config = new xPMConfiguration($this);
 		$this->groups = new xPMGroups($this);
+		$this->users = new xPMUsers($this);
 		
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		
@@ -50,13 +48,24 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		}
 	}
 	
+	public function onPlayerJoin(PlayerJoinEvent $event)
+	{
+		$this->users->removeAttachment($event->getPlayer());
+		
+		$event->getPlayer()->recalculatePermissions();
+	}
+	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
+		$prefix = $this->groups->getPrefix($this->users->getGroup($event->getPlayer()));
+		
+		$suffix = $this->groups->getSuffix($this->users->getGroup($event->getPlayer()));
+		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
-			$format = str_replace("{PREFIX}", $this->groups->getPrefix($this->getPlayerRank($event->getPlayer())), str_replace(
+			$format = str_replace("{PREFIX}", $prefix, str_replace(
 				"{USER_NAME}", $event->getPlayer()->getName(), str_replace(
-					"{SUFFIX}", $this->groups->getSuffix($this->getPlayerRank($event->getPlayer())), str_replace(
+					"{SUFFIX}", $suffix, str_replace(
 						"{MESSAGE}", $event->getMessage(), $this->config->getConfig()["chat-format"]
 						)
 					)
@@ -65,65 +74,12 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		}
 		else
 		{
+			trigger_error("Invalid chat-format given, using the default one", E_USER_NOTICE);
+			
 			$format = "<" . $event->getPlayer()->getName() . "> " . $event->getMessage();
 		}
 		
 		$event->setFormat($format);
-	}
-	
-	public function onPlayerSpawn(PlayerSpawnEvent $event)
-	{
-		$this->setPlayerPermissions($event->getPlayer());
-	}
-	
-	private function getAllPlayerPermissions($player)
-	{
-		$inherited_group = $this->groups->getGroup($this->getPlayerRank($player))["inheritance"];
-		
-		$perms = $this->groups->getGroup($this->getPlayerRank($player))["permissions"];
-		
-		if(isset($inherited_group) and is_array($inherited_group))
-		{
-			foreach($inherited_group as $ig)
-			{
-				if($this->groups->isValidGroup($ig) != null)
-				{
-					$perms = array_merge($perms, $this->groups->getGroup($ig)["permissions"]);
-				}
-			}
-		}
-		
-		return $perms;
-	}
-	
-	private function getAllUserConfigFiles()
-	{
-		return array_diff(scandir($this->getDataFolder() . "players/"), array(".", "..", ""));
-	}
-	
-	private function getPlayerRank($player)
-	{
-		$cfg = $this->getUserConfig($player);
-		
-		return $cfg->getAll()["group"];
-	}
-	
-	private function getUserConfig($player)
-	{
-		$username = $player->getName();
-		
-		if(!(file_exists($this->getDataFolder() . "players/" . strtolower($username) . ".yml")))
-		{
-			return new Config($this->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
-				"username" => $username,
-				"group" => $this->groups->getDefaultGroup(),
-			));
-		}
-		else
-		{
-			return new Config($this->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
-			));
-		}
 	}
 	
 	private function getValidPlayer($username)
@@ -133,43 +89,14 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		return $player instanceof Player ? $player : $this->getServer()->getOfflinePlayer($username);
 	}
 	
-	private function setPlayerPermissions($player)
+	private function reload()
 	{
-		if($player instanceof Player)
-		{
-			foreach($this->getAllPlayerPermissions($player) as $permission)
-			{
-				$attachment = $player->addAttachment($this);
+		@mkdir($this->getDataFolder() . "players/", 0777, true);
 				
-				$attachment->setPermission($permission, true);
-			}
-			
-			$player->removeAttachment($attachment);
-			
-			unset($attachment);
-			
-			return true;
-		}
-		 
-		return false;
-	}
-	
-	private function setPlayerRank($player, $groupName)
-	{		
-		if($this->groups->isValidGroup($groupName))
-		{
-			$user_cfg = $this->getUserConfig($player);
-			
-			$user_cfg->set("group", $groupName);
-			
-			$user_cfg->save();
-			
-			unset($user_cfg);
-			
-			return true;
-		}	
-		
-		return false;
+		$this->config->load();
+		$this->groups->load();
+					
+		$this->users->recalculatePerms();
 	}
 	
 	private function xPermsMgrCommand(CommandSender $sender, Command $cmd, $label, array $args)
@@ -199,15 +126,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					
 				case "reload":
 				
-					@mkdir($this->getDataFolder() . "players/", 0777, true);
-				
-					$this->config->load();
-					$this->groups->load();
-					
-					foreach($this->getServer()->getOnlinePlayers() as $player)
-					{
-						$player->recalculatePermissions();
-					}
+					$this->reload();
 							
 					$sender->sendMessage("[xPermsMgr] Successfully reloaded the config files and player permissions.");
 							
@@ -232,11 +151,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					$target = $this->getValidPlayer($args[1]);
 						
 					if(isset($args[2]) and $this->groups->isValidGroup($args[2]))
-					{					
-						$this->setPlayerRank($target, $args[2]);
-						
-						$this->setPlayerPermissions($target);
-							
+					{
+						$this->users->setGroup($target, $args[2]);
+												
 						$message = str_replace("{RANK}", strtolower($args[2]), $this->config->getConfig()["message-on-rank-change"]);
 								
 						$sender->sendMessage("[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
@@ -264,7 +181,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						
 					if(isset($args[1]) and $this->groups->isValidGroup($args[1]))
 					{
-						foreach($this->getAllUserConfigFiles() as $cfg_file)
+						foreach($this->users->getAll() as $cfg_file)
 						{
 							$user_cfg = new Config($this->getDataFolder() . "players/" . $cfg_file, Config::YAML, array(
 							));
@@ -282,7 +199,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 							break;
 						}
 							
-						$sender->sendMessage("[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP --> \n" . $output);
+						$sender->sendMessage("[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP! :D --> \n" . $output);
 						
 						unset($user_cfg);
 					}
