@@ -17,7 +17,7 @@ use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 use pocketmine\utils\Config;
-use pocketmine\utils\TextFormat;
+use pocketmine\utils\TextFormat as TF;
 
 class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 {
@@ -31,7 +31,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		
-		console(TextFormat::GREEN . "[INFO] xPermsMgr has been enabled.");
+		$this->getLogger()->info("xPermsMgr has been enabled! :D");
 	}
 	
 	public function onCommand(CommandSender $sender, Command $cmd, $label, array $args)
@@ -74,7 +74,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 		}
 		else
 		{
-			trigger_error("Invalid chat-format given, using the default one", E_USER_NOTICE);
+			$this->getLogger()->alert("Invalid chat-format given, using the default one");
 			
 			$format = "<" . $event->getPlayer()->getName() . "> " . $event->getMessage();
 		}
@@ -103,7 +103,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	{
 		if(!isset($args[0]))
 		{
-			$sender->sendMessage("[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . " by " . $this->getDescription()->getAuthors()[0] . "!");
+			$sender->sendMessage(TF::GREEN . "[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . " by " . $this->getDescription()->getAuthors()[0] . "!");
 		}
 		else
 		{
@@ -120,7 +120,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 
 					$output = substr($output, 0, -2);
 
-					$sender->sendMessage("[xPermsMgr] List of all groups: " . $output);
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] List of all groups: " . $output);
 						
 					break;
 					
@@ -128,7 +128,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 				
 					$this->reload();
 							
-					$sender->sendMessage("[xPermsMgr] Successfully reloaded the config files and player permissions.");
+					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Successfully reloaded the config files and player permissions.");
 							
 					break;
 						
@@ -136,36 +136,41 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					
 					if(count($args) > 4)
 					{
-						$sender->sendMessage("[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
 							
 						break;
 					}
 					
 					if(!isset($args[1]))
 					{
-						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Player!");
+						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Player!");
 						
 						break;
 					}
 					
 					$target = $this->getValidPlayer($args[1]);
-						
-					if(isset($args[2]) and $this->groups->isValidGroup($args[2]))
+					
+					if(isset($args[2]))
 					{
-						$this->users->setGroup($target, $args[2]);
+						$group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
+					}
+						
+					if(isset($group))
+					{					
+						$this->users->setGroup($target, $group);
 												
-						$message = str_replace("{RANK}", strtolower($args[2]), $this->config->getConfig()["message-on-rank-change"]);
+						$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
 								
-						$sender->sendMessage("[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
 						
 						if($target instanceof Player)
 						{
-							$target->sendMessage("[xPermsMgr] " . $message);
+							$target->sendMessage(TF::GREEN . "[xPermsMgr] " . $message);
 						}
 					}
 					else
 					{
-						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Group!");
+						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group!");
 					}		
 					
 					break;
@@ -174,19 +179,24 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 					
 					if(count($args) > 3)
 					{
-						$sender->sendMessage("[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
 							
 						break;
 					}
+					
+					if(isset($args[1]))
+					{
+						$group = $this->groups->isValidGroup($args[1]) ? $args[1] : $this->groups->getByAlias($args[1]);
+					};
 						
-					if(isset($args[1]) and $this->groups->isValidGroup($args[1]))
+					if(isset($group))
 					{
 						foreach($this->users->getAll() as $cfg_file)
 						{
 							$user_cfg = new Config($this->getDataFolder() . "players/" . $cfg_file, Config::YAML, array(
 							));
 							
-							if($user_cfg->get("group") == $args[1])
+							if($user_cfg->get("group") == $group)
 							{
 								$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
 							}
@@ -194,25 +204,25 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 						
 						if($output == "")
 						{
-							$sender->sendMessage("[xPermsMgr] There are no players in this group! \n" . $output);
+							$sender->sendMessage(TF::YELLOW . "[xPermsMgr] There are no players in this group! \n" . $output);
 							
 							break;
 						}
 							
-						$sender->sendMessage("[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP! :D --> \n" . $output);
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP! :D --> \n" . $output);
 						
 						unset($user_cfg);
 					}
 					else
 					{
-						$sender->sendMessage("[xPermsMgr] ERROR: Invalid Group!");
+						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group!");
 					}
 						
 					break;
 							
 				default:
 							
-					$sender->sendMessage("[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
+					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
 			}
 		}
 		
@@ -221,6 +231,6 @@ class xPermsMgr extends PluginBase implements CommandExecutor, Listener
 	
 	public function onDisable()
 	{		
-		console(TextFormat::RED . "[WARNING] xPermsMgr has been disabled.");
+		$this->getLogger()->warning("xPermsMgr has been disabled.");
 	}
 }

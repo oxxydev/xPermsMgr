@@ -1,5 +1,6 @@
 ---
 Default:
+  alias: 'd'
   prefix: '[Default]'
   suffix: ''
   default-group: true
@@ -13,6 +14,7 @@ Default:
   - pocketmine.command.tell
   - pocketmine.command.version
 Mod:
+  alias: 'm'
   prefix: '[Mod]'
   suffix: ''
   inheritance:
@@ -27,6 +29,7 @@ Mod:
   - pocketmine.command.teleport
   - pocketmine.command.time
 Admin:
+  alias: 'a'
   prefix: '[Admin]'
   suffix: ''
   inheritance:
@@ -38,6 +41,7 @@ Admin:
   - pocketmine.command.unban
   - pocketmine.command.whitelist
 Owner:
+  alias: 'o'
   prefix: '[Owner]'
   suffix: ''
   inheritance:

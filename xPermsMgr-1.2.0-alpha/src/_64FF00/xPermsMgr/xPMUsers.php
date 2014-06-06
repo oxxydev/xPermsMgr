@@ -9,8 +9,6 @@ use pocketmine\permission\PermissionAttachment;
 
 use pocketmine\Player;
 
-use pocketmine\Server;
-
 use pocketmine\utils\Config;
 
 class xPMUsers
@@ -30,7 +28,7 @@ class xPMUsers
 		{
 			return new Config($this->plugin->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
 				"username" => $username,
-				"group" => $this->groups->getDefaultGroup(),
+				"group" => $this->groups->getDefaultGroup()
 			));
 		}
 		else
@@ -69,9 +67,9 @@ class xPMUsers
 	
 	public function getPerms($player)
 	{
-		$inherited_groups = $this->groups->getGroup($this->getGroup($player))["inheritance"];
+		$inherited_groups = $this->groups->get($this->getGroup($player))["inheritance"];
 		
-		$permissions = $this->groups->getGroup($this->getGroup($player))["permissions"];
+		$permissions = $this->groups->get($this->getGroup($player))["permissions"];
 		
 		if(isset($inherited_groups) and is_array($inherited_groups))
 		{
@@ -79,7 +77,7 @@ class xPMUsers
 			{
 				if($this->groups->isValidGroup($i_group) != null)
 				{
-					$permissions = array_merge($permissions, $this->groups->getGroup($i_group)["permissions"]);
+					$permissions = array_merge($permissions, $this->groups->get($i_group)["permissions"]);
 				}
 			}
 		}
@@ -123,24 +121,11 @@ class xPMUsers
 	public function setPerms($player)
 	{
 		if($player instanceof Player)
-		{	
-			$this->unsetPerms($player);
-			
+		{				
 			foreach($this->getPerms($player) as $permission)
 			{				
 				$this->getAttachment($player)->setPermission($permission, true);
 			}			
-		}
-	}
-
-	public function unsetPerms($player)
-	{
-		if($player instanceof Player)
-		{
-			foreach($this->getEffectivePermissions($player) as $permission)
-			{				
-				$this->getAttachment($player)->unsetPermission($permission);
-			}
 		}
 	}
 }

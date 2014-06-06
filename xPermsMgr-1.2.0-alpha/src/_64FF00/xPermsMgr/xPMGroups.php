@@ -15,6 +15,11 @@ class xPMGroups
 		$this->load();
 	}
 	
+	public function getAlias($groupName)
+	{
+		return $this->groups[$groupName]["alias"];
+	}
+	
 	public function getAllGroups()
 	{
 		$groups = array_keys($this->groups);
@@ -43,11 +48,24 @@ class xPMGroups
 		return null;
 	}
 	
-	public function getGroup($groupName)
+	public function get($groupName)
 	{
 		if($this->isValidGroup($groupName))
 		{
 			return $this->groups[$groupName];
+		}
+		
+		return null;
+	}
+	
+	public function getByAlias($alias)
+	{
+		foreach($this->getAllGroups() as $group)
+		{
+			if($this->getAlias($group) == $alias)
+			{
+				return $group;
+			}
 		}
 		
 		return null;
