@@ -3,7 +3,7 @@ xPermsMgr
 
 xPermsMgr is a custom permissions plugin for PocketMine. 
 
-Please do NOT redistribute this plugin, or copy its source code withour our permission. (TEAM XTi)
+Please do NOT redistribute this plugin, or copy its source code without our permission.
 
 Current Features
 ================
@@ -22,5 +22,6 @@ Commands
 ---------|------------|-------------
  /xpmgr groups | - | -
  /xpmgr reload | - | -
+ /xpmgr setperm | [USER_NAME], [PERMISSION] | -
  /xpmgr setrank | [USER_NAME], [GROUP_NAME] | -
  /xpmgr users | [GROUP_NAME] | -
