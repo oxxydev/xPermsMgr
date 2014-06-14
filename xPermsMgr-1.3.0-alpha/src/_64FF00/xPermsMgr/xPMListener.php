@@ -3,8 +3,10 @@
 namespace _64FF00\xPermsMgr;
 
 use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerKickEvent;
+use pocketmine\event\player\PlayerQuitEvent;
 
 class xPMListener implements Listener
 {
@@ -15,11 +17,6 @@ class xPMListener implements Listener
 		$this->users = new xPMUsers($plugin);
 		
 		$this->plugin = $plugin;
-	}
-	
-	public function onPlayerJoin(PlayerJoinEvent $event)
-	{	
-		$event->getPlayer()->recalculatePermissions();
 	}
 	
 	public function onPlayerChat(PlayerChatEvent $event)
@@ -47,5 +44,20 @@ class xPMListener implements Listener
 		}
 		
 		$event->setFormat($format);
+	}
+	
+	public function onPlayerJoin(PlayerJoinEvent $event)
+	{	
+		$this->users->setPermissions($event->getPlayer());
+	}
+	
+	public function onPlayerKick(PlayerKickEvent $event)
+	{	
+		$event->getPlayer()->removeAttachment($this->users->getAttachment($event->getPlayer()));
+	}
+	
+	public function onPlayerQuit(PlayerQuitEvent $event)
+	{	
+		$event->getPlayer()->removeAttachment($this->users->getAttachment($event->getPlayer()));
 	}
 }

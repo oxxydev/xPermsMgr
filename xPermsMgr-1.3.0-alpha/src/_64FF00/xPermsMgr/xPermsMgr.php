@@ -56,7 +56,10 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 		$this->config->load();
 		$this->groups->load();
 					
-		$this->users->recalculatePerms();
+		foreach($this->plugin->getServer()->getOnlinePlayers() as $player)
+		{
+			$player->recalculatePermissions();
+		}
 	}
 	
 	private function xPermsMgrCommand(CommandSender $sender, Command $cmd, $label, array $args)

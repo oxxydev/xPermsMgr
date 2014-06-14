@@ -103,19 +103,6 @@ class xPMUsers
 		return $this->getConfig($player)->getAll()["permissions"];
 	}
 	
-	public function recalculatePerms()
-	{
-		foreach($this->plugin->getServer()->getOnlinePlayers() as $player)
-		{
-			$player->recalculatePermissions();
-		}
-	}
-	
-	public function removeAttachment($player)
-	{
-		$player->removeAttachment($this->getAttachment($player));
-	}
-	
 	public function setGroup($player, $groupName)
 	{
 		if($this->groups->isValidGroup($groupName))
@@ -139,13 +126,20 @@ class xPMUsers
 	public function setPermissions($player)
 	{
 		if($player instanceof Player)
-		{				
+		{			
+			$attachment = $this->getAttachment($player);
+		
+			foreach(array_keys($attachment->getPermissions()) as $key)
+			{
+				$attachment->unsetPermission($key);
+			}	
+
 			foreach($this->getPermissions($player) as $permission)
-			{				
-				$this->getAttachment($player)->setPermission($permission, true);
+			{
+				$attachment->setPermission($permission, true);
 			}
 
-			$this->removeAttachment($player);			
+			$player->recalculatePermissions();
 		}
 	}
 }
