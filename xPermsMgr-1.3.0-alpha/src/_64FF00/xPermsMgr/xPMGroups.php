@@ -48,7 +48,7 @@ class xPMGroups
 		return null;
 	}
 	
-	public function get($groupName)
+	public function getGroup($groupName)
 	{
 		if($this->isValidGroup($groupName))
 		{

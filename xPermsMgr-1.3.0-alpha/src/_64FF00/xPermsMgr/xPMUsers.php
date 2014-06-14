@@ -20,24 +20,6 @@ class xPMUsers
 		$this->plugin = $plugin;
 	}
 	
-	public function getConfig($player)
-	{
-		$username = $player->getName();
-		
-		if(!(file_exists($this->plugin->getDataFolder() . "players/" . strtolower($username) . ".yml")))
-		{
-			return new Config($this->plugin->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
-				"username" => $username,
-				"group" => $this->groups->getDefaultGroup()
-			));
-		}
-		else
-		{
-			return new Config($this->plugin->getDataFolder() . "players/" . strtolower($username) . ".yml", Config::YAML, array(
-			));
-		}
-	}
-	
 	public function getAll()
 	{
 		return array_diff(scandir($this->plugin->getDataFolder() . "players/"), array(".", "..", ""));
@@ -46,6 +28,30 @@ class xPMUsers
 	public function getAttachment($player)
 	{
 		return $player->addAttachment($this->plugin);
+	}
+	
+	public function getConfig($target)
+	{
+		if($target instanceof Player || $target instanceof OfflinePlayer)
+		{
+			if(!(file_exists($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml")))
+			{
+				return new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
+					"username" => $target->getName(),
+					"group" => $this->groups->getDefaultGroup(),
+					"permissions" => array(
+					)
+				));
+			}
+			else
+			{
+				return new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
+				));
+			}
+		}
+		
+		return new Config($this->plugin->getDataFolder() . "players/" . $target, Config::YAML, array(
+		));
 	}
 	
 	public function getEffectivePermissions($player)
@@ -60,16 +66,23 @@ class xPMUsers
 		return $permissions;
 	}
 	
-	public function getGroup($player)
+	public function getCurrentGroup($player)
 	{		
 		return $this->getConfig($player)->getAll()["group"];
 	}
 	
-	public function getPerms($player)
+	public function getPermissions($player)
 	{
-		$inherited_groups = $this->groups->get($this->getGroup($player))["inheritance"];
+		$inherited_groups = $this->groups->getGroup($this->getCurrentGroup($player))["inheritance"];
 		
-		$permissions = $this->groups->get($this->getGroup($player))["permissions"];
+		$permissions = $this->groups->getGroup($this->getCurrentGroup($player))["permissions"];
+		
+		$user_permissions = $this->getUserPermissions($player);
+		
+		foreach($user_permissions as $u_permission)
+		{
+			$permissions = array_merge($permissions, $u_permission);
+		}
 		
 		if(isset($inherited_groups) and is_array($inherited_groups))
 		{
@@ -77,12 +90,17 @@ class xPMUsers
 			{
 				if($this->groups->isValidGroup($i_group) != null)
 				{
-					$permissions = array_merge($permissions, $this->groups->get($i_group)["permissions"]);
+					$permissions = array_merge($permissions, $this->groups->getGroup($i_group)["permissions"]);
 				}
 			}
 		}
 		
 		return $permissions;
+	}
+	
+	public function getUserPermissions($player)
+	{
+		return $this->getConfig($player)->getAll()["permissions"];
 	}
 	
 	public function recalculatePerms()
@@ -108,7 +126,7 @@ class xPMUsers
 			
 			$user_cfg->save();
 			
-			$this->setPerms($player);
+			$this->setPermissions($player);
 			
 			unset($user_cfg);
 			
@@ -118,14 +136,16 @@ class xPMUsers
 		return false;
 	}
 	
-	public function setPerms($player)
+	public function setPermissions($player)
 	{
 		if($player instanceof Player)
 		{				
-			foreach($this->getPerms($player) as $permission)
+			foreach($this->getPermissions($player) as $permission)
 			{				
 				$this->getAttachment($player)->setPermission($permission, true);
-			}			
+			}
+
+			$this->removeAttachment($player);			
 		}
 	}
 }
