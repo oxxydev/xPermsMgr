@@ -113,49 +113,26 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 					
 					$target = $this->getValidPlayer($args[1]);
 					
-					if(isset($args[2]))
-					{
-						$group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
-					}
-						
-					if(isset($group))
-					{					
-						$this->users->setGroup($target, $group);
-												
-						$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
-								
-						$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
-						
-						if($target instanceof Player)
-						{
-							$target->sendMessage(TF::DARK_GREEN . "[xPermsMgr] " . $message);
-						}
-					}
-					else
+					if(!isset($args[2]))
 					{
 						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group.");
+						
+						break;
+					}
+					
+					$group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
+					
+					$this->users->setGroup($target, $group);
+												
+					$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
+								
+					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
+						
+					if($target instanceof Player)
+					{
+						$target->sendMessage(TF::DARK_GREEN . "[xPermsMgr] " . $message);
 					}		
 					
-					break;
-					
-				case "setperm":
-					
-					if(count($args) > 4)
-					{
-						$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr setperm <USER_NAME> <PERMISSION>");
-							
-						break;
-					}	
-					
-					if(isset($args[1]))
-					{
-						$target = $this->getValidPlayer($args[1]);
-					}
-					else
-					{
-						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Player.");
-					}
-				
 					break;
 						
 				case "users":
@@ -167,44 +144,41 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					if(isset($args[1]))
-					{
-						$group = $this->groups->isValidGroup($args[1]) ? $args[1] : $this->groups->getByAlias($args[1]);
-					}
-						
-					if(isset($group))
-					{
-						foreach($this->users->getAll() as $filename)
-						{
-							$user_cfg = $this->users->getConfig($filename);
-							
-							if($user_cfg->get("group") == $group)
-							{
-								$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
-							}
-						}
-						
-						if($output == "")
-						{
-							$sender->sendMessage(TF::YELLOW . "[xPermsMgr] There are no players in this group! \n");
-							
-							break;
-						}
-							
-						$sender->sendMessage(TF::DARK_AQUA . "[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP :D --> \n" . TF::AQUA . $output);
-						
-						unset($user_cfg);
-					}
-					else
+					if(!isset($args[1]))
 					{
 						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group.");
+						
+						break;
 					}
+					
+					$group = $this->groups->isValidGroup($args[1]) ? $args[1] : $this->groups->getByAlias($args[1]);
+
+					foreach($this->users->getAll() as $filename)
+					{
+						$user_cfg = $this->users->getConfig($filename);
+							
+						if($user_cfg->get("group") == $group)
+						{
+								$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
+						}
+					}
+						
+					if($output == "")
+					{
+						$sender->sendMessage(TF::YELLOW . "[xPermsMgr] There are no players in this group! \n");
+							
+						break;
+					}
+							
+					$sender->sendMessage(TF::DARK_AQUA . "[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP :D --> \n \n" . TF::AQUA . $output);
+						
+					unset($user_cfg);
 						
 					break;
 							
 				default:
 							
-					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / setperm / users>");
+					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
 			}
 		}
 		
