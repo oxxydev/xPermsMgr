@@ -4,6 +4,8 @@ namespace _64FF00\xPermsMgr;
 
 use pocketmine\command\CommandSender;
 
+use pocketmine\IPlayer;
+
 use pocketmine\permission\PermissibleBase;
 use pocketmine\permission\PermissionAttachment;
 
@@ -32,7 +34,7 @@ class xPMUsers
 	
 	public function getConfig($target)
 	{
-		if($target instanceof Player || $target instanceof OfflinePlayer)
+		if($target instanceof IPlayer)
 		{
 			if(!(file_exists($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml")))
 			{
