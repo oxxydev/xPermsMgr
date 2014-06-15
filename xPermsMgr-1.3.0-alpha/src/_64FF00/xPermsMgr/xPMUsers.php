@@ -42,6 +42,8 @@ class xPMUsers
 					"username" => $target->getName(),
 					"group" => $this->groups->getDefaultGroup(),
 					"permissions" => array(
+						"test.permission.t1",
+						"-test.permission.t2"
 					)
 				));
 			}
@@ -56,18 +58,6 @@ class xPMUsers
 		));
 	}
 	
-	public function getEffectivePermissions($player)
-	{
-		$permissions = array();
-
-		foreach($player->getEffectivePermissions() as $permission)
-		{			
-			array_push($permissions, $permission->getPermission());
-		}
-		
-		return $permissions;
-	}
-	
 	public function getCurrentGroup($player)
 	{		
 		return $this->getConfig($player)->getAll()["group"];
@@ -77,22 +67,15 @@ class xPMUsers
 	{
 		$inherited_groups = $this->groups->getGroup($this->getCurrentGroup($player))["inheritance"];
 		
-		$permissions = $this->groups->getGroup($this->getCurrentGroup($player))["permissions"];
-		
-		$user_permissions = $this->getUserPermissions($player);
-		
-		foreach($user_permissions as $u_permission)
-		{
-			$permissions = array_merge($permissions, $u_permission);
-		}
+		$permissions = array_merge($this->groups->getGroup($this->getCurrentGroup($player))["permissions"], $this->getUserPermissions($player));
 		
 		if(isset($inherited_groups) and is_array($inherited_groups))
 		{
-			foreach($inherited_groups as $i_group)
+			foreach($inherited_groups as $inherited_group)
 			{
-				if($this->groups->isValidGroup($i_group) != null)
+				if($this->groups->isValidGroup($inherited_group) != null)
 				{
-					$permissions = array_merge($permissions, $this->groups->getGroup($i_group)["permissions"]);
+					$permissions = array_merge($permissions, $this->groups->getGroup($inherited_group)["permissions"]);
 				}
 			}
 		}
@@ -102,7 +85,12 @@ class xPMUsers
 	
 	public function getUserPermissions($player)
 	{
-		return $this->getConfig($player)->getAll()["permissions"];
+		return $this->getConfig($player)->get("permissions");
+	}
+	
+	public function isNegative($permission)
+	{
+		return substr($permission, 1) === "-";
 	}
 	
 	public function setGroup($player, $groupName)
@@ -138,7 +126,14 @@ class xPMUsers
 
 			foreach($this->getPermissions($player) as $permission)
 			{
-				$attachment->setPermission($permission, true);
+				if(!$this->isNegative($permission))
+				{
+					$attachment->setPermission($permission, true);
+				}
+				else
+				{
+					$attachment->setPermission($permission, false);
+				}
 			}
 
 			$player->recalculatePermissions();
