@@ -11,7 +11,6 @@ Current Features
 - Uses the new API in PocketMine-MP Alpha_1.4
 - Set up permissions for different groups
 - Multi-group inheritance system
-- Option to give op all permissions (enable-op-override)
 - Custom prefix / suffix support
 - Negative permission nodes!
 - Group Aliases
