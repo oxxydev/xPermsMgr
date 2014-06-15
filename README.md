@@ -13,6 +13,7 @@ Current Features
 - Multi-group inheritance system
 - Option to give op all permissions (enable-op-override)
 - Custom prefix / suffix support
+- Negative permission nodes!
 - Group Aliases
 - More features coming soon! ;)
 
