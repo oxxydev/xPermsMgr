@@ -144,7 +144,10 @@ class xPMUsers
 	
 	public function setNameTag($player)
 	{
-		$player->setNameTag($this->getNameTag($player));
+		if($player instanceof Player)
+		{
+			$player->setNameTag($this->getNameTag($player));
+		}
 	}
 	
 	public function setPermissions($player)
