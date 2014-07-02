@@ -12,7 +12,7 @@ Current Features
 - Set up permissions for different groups
 - Multi-group inheritance system
 - Custom prefix / suffix support
-- Custom Nametags
+- Custom nametags
 - Negative permission nodes
 - Group Aliases
 
