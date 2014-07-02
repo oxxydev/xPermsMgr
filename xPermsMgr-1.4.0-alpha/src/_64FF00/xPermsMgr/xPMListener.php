@@ -21,9 +21,9 @@ class xPMListener implements Listener
 	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
-		$prefix = $this->groups->getPrefix($this->users->getCurrentGroup($event->getPlayer()));
+		$prefix = $this->groups->getPrefix($this->users->getGroup($event->getPlayer()));
 		
-		$suffix = $this->groups->getSuffix($this->users->getCurrentGroup($event->getPlayer()));
+		$suffix = $this->groups->getSuffix($this->users->getGroup($event->getPlayer()));
 		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
@@ -49,6 +49,8 @@ class xPMListener implements Listener
 	public function onPlayerJoin(PlayerJoinEvent $event)
 	{	
 		$this->users->setPermissions($event->getPlayer());
+		
+		$this->users->setNameTag($event->getPlayer());
 	}
 	
 	public function onPlayerKick(PlayerKickEvent $event)

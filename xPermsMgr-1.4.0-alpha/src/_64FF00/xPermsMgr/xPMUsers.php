@@ -15,8 +15,13 @@ use pocketmine\utils\Config;
 
 class xPMUsers
 {
+	private $playerAttachments = array();
+	
 	public function __construct(xPermsMgr $plugin)
 	{
+		@mkdir($plugin->getDataFolder() . "players/", 0777, true);
+		
+		$this->config = new xPMConfiguration($plugin);
 		$this->groups = new xPMGroups($plugin);
 		
 		$this->plugin = $plugin;
@@ -29,7 +34,12 @@ class xPMUsers
 	
 	public function getAttachment($player)
 	{
-		return $player->addAttachment($this->plugin);
+		if(!isset($this->playerAttachments[$player->getName()]))
+		{
+			$this->playerAttachments[$player->getName()] = $player->addAttachment($this->plugin);
+		}
+		
+		return $this->playerAttachments[$player->getName()];
 	}
 	
 	public function getConfig($target)
@@ -58,16 +68,33 @@ class xPMUsers
 		));
 	}
 	
-	public function getCurrentGroup($player)
+	public function getGroup($player)
 	{		
 		return $this->getConfig($player)->getAll()["group"];
 	}
 	
+	public function getNameTag($player)
+	{
+		$prefix = $this->groups->getPrefix($this->getGroup($player));
+		
+		$suffix = $this->groups->getSuffix($this->getGroup($player));
+		
+		if($this->config->getConfig()["custom-nametag"] != null)
+		{
+			return str_replace("{PREFIX}", $prefix, str_replace(
+				"{USER_NAME}", $player->getName(), str_replace(
+					"{SUFFIX}", $suffix, $this->config->getConfig()["custom-nametag"]
+					)
+				)
+			);
+		}
+	}
+	
 	public function getPermissions($player)
 	{
-		$inherited_groups = $this->groups->getGroup($this->getCurrentGroup($player))["inheritance"];
+		$inherited_groups = $this->groups->getGroup($this->getGroup($player))["inheritance"];
 		
-		$permissions = array_merge($this->groups->getGroup($this->getCurrentGroup($player))["permissions"], $this->getUserPermissions($player));
+		$permissions = array_merge($this->groups->getGroup($this->getGroup($player))["permissions"], $this->getUserPermissions($player));
 		
 		if(isset($inherited_groups) and is_array($inherited_groups))
 		{
@@ -105,12 +132,19 @@ class xPMUsers
 			
 			$this->setPermissions($player);
 			
+			$this->setNameTag($player);
+			
 			unset($user_cfg);
 			
 			return true;
 		}	
 		
 		return false;
+	}
+	
+	public function setNameTag($player)
+	{
+		$player->setNameTag($this->getNameTag($player));
 	}
 	
 	public function setPermissions($player)

@@ -19,11 +19,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 {
 	public function onEnable()
 	{
-		@mkdir($this->getDataFolder() . "players/", 0777, true);
-		
-		$this->config = new xPMConfiguration($this);
-		$this->groups = new xPMGroups($this);
-		$this->users = new xPMUsers($this);
+		$this->load();
 		
 		$this->getServer()->getPluginManager()->registerEvents(new xPMListener($this), $this);
 	}
@@ -49,17 +45,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 		return $player instanceof Player ? $player : $this->getServer()->getOfflinePlayer($username);
 	}
 	
-	private function reload()
+	private function load()
 	{
-		@mkdir($this->getDataFolder() . "players/", 0777, true);
-				
-		$this->config->load();
-		$this->groups->load();
-					
-		foreach($this->getServer()->getOnlinePlayers() as $player)
-		{
-			$player->recalculatePermissions();
-		}
+		$this->config = new xPMConfiguration($this);
+		$this->groups = new xPMGroups($this);
+		$this->users = new xPMUsers($this);
 	}
 	
 	private function xPermsMgrCommand(CommandSender $sender, Command $cmd, $label, array $args)
@@ -75,6 +65,11 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 			switch($args[0])
 			{				
 				case "groups":
+				
+					if(!$sender->hasPermission("xpmgr.command.groups"))
+					{
+						break;
+					}
 					
 					foreach($this->groups->getAllGroups() as $group)
 					{
@@ -83,23 +78,33 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 
 					$output = substr($output, 0, -2);
 
-					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] List of all groups: " . $output);
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] List of all groups: " . $output);
 						
 					break;
 					
 				case "reload":
 				
-					$this->reload();
+					if(!$sender->hasPermission("xpmgr.command.reload"))
+					{
+						break;
+					}
+				
+					$this->load();
 							
-					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Successfully reloaded the config files and player permissions.");
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Successfully reloaded the config files.");
 							
 					break;
 						
 				case "setrank":
+				
+					if(!$sender->hasPermission("xpmgr.command.setrank"))
+					{
+						break;
+					}
 					
 					if(count($args) > 4)
 					{
-						$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
 							
 						break;
 					}
@@ -126,20 +131,25 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 												
 					$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
 								
-					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
 						
 					if($target instanceof Player)
 					{
-						$target->sendMessage(TF::DARK_GREEN . "[xPermsMgr] " . $message);
+						$target->sendMessage(TF::GREEN . "[xPermsMgr] " . $message);
 					}		
 					
 					break;
 						
 				case "users":
+				
+					if(!$sender->hasPermission("xpmgr.command.users"))
+					{
+						break;
+					}
 					
 					if(count($args) > 3)
 					{
-						$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
 							
 						break;
 					}
@@ -170,7 +180,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 							
-					$sender->sendMessage(TF::DARK_AQUA . "[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP :D --> \n \n" . TF::AQUA . $output);
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] <-- ALL PLAYERS IN THIS GROUP :D --> \n \n" . TF::GREEN . $output . "\n");
 						
 					unset($user_cfg);
 						
@@ -178,7 +188,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 							
 				default:
 							
-					$sender->sendMessage(TF::DARK_GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
 			}
 		}
 		

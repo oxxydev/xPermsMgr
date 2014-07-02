@@ -1,4 +1,5 @@
 ---
 chat-format: '<{PREFIX} {USER_NAME}> {MESSAGE}'
+custom-nametag: '<{PREFIX} {USER_NAME}>'
 message-on-rank-change: Your rank has been changed into a / an {RANK}!
 ...
