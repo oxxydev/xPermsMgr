@@ -12,7 +12,7 @@ commands:
   usage: "/xpmgr <groups / reload / setrank / users>"
   permission: xpmgr.command
 permissions:
- xpermsmgr:
+ xpmgr:
   default: op
   description: "Allows you to use all the xPermsMgr things!"
   children:
