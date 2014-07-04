@@ -15,6 +15,7 @@ Current Features
 - Custom nametags
 - Negative permission nodes
 - Group Aliases
+- More features coming soon ;D
 
 Commands
 ========
