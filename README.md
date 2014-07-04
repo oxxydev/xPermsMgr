@@ -25,5 +25,5 @@ Commands
 ---------|------------|-------------
  /xpmgr groups | - | -
  /xpmgr reload | - | -
- /xpmgr setrank | [USER_NAME], [GROUP_NAME] | -
- /xpmgr users | [GROUP_NAME] | -
+ /xpmgr setrank | [USER_NAME], [GROUP_NAME], [LEVEL_NAME] | -
+ /xpmgr users | [GROUP_NAME], [LEVEL_NAME] | -
