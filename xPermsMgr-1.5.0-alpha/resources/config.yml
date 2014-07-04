@@ -1,5 +1,6 @@
 ---
 chat-format: '<{PREFIX} {USER_NAME}> {MESSAGE}'
 custom-nametag: '<{PREFIX} {USER_NAME}>'
+message-on-insufficient-build-permission: You don't have permission to build here.
 message-on-rank-change: Your rank has been changed into a / an {RANK}!
 ...

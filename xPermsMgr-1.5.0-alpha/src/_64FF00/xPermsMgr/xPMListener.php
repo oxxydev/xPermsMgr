@@ -3,10 +3,14 @@
 namespace _64FF00\xPermsMgr;
 
 use pocketmine\event\Listener;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+
+use pocketmine\utils\TextFormat as TF;
 
 class xPMListener implements Listener
 {
@@ -19,17 +23,35 @@ class xPMListener implements Listener
 		$this->plugin = $plugin;
 	}
 	
+	public function onBlockBreak(BlockBreakEvent $event)
+	{	
+		if(!$event->getPlayer()->hasPermission("xpmgr.build"))
+		{
+			$event->getPlayer()->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-build-permission"]);
+			
+			$event->setCancelled(true);
+		}
+	}
+	
+	public function onBlockPlace(BlockPlaceEvent $event)
+	{	
+		if(!$event->getPlayer()->hasPermission("xpmgr.build"))
+		{
+			$event->getPlayer()->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-build-permission"]);
+			
+			$event->setCancelled(true);
+		}
+	}
+	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
-		$prefix = $this->groups->getPrefix($this->users->getGroup($event->getPlayer()));
-		
-		$suffix = $this->groups->getSuffix($this->users->getGroup($event->getPlayer()));
+		$group = $this->users->getGroup($event->getPlayer());
 		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
-			$format = str_replace("{PREFIX}", $prefix, str_replace(
+			$format = str_replace("{PREFIX}", $this->groups->getPrefix($group), str_replace(
 				"{USER_NAME}", $event->getPlayer()->getName(), str_replace(
-					"{SUFFIX}", $suffix, str_replace(
+					"{SUFFIX}", $this->groups->getSuffix($group), str_replace(
 						"{MESSAGE}", $event->getMessage(), $this->config->getConfig()["chat-format"]
 						)
 					)

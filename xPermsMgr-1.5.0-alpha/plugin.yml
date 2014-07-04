@@ -1,6 +1,6 @@
 name: xPermsMgr
 main: _64FF00\xPermsMgr\xPermsMgr
-version: 1.4.0
+version: 1.5.0
 api: [1.0.0]
 load: STARTUP
 author: 64FF00
@@ -16,6 +16,9 @@ permissions:
   default: op
   description: "Allows you to use all the xPermsMgr things!"
   children:
+   xpmgr.build:
+    default: true
+    description: "Allows you to break and place blocks!"
    xpmgr.command:
     default: op
     description: "Allows you to use all the xPermsMgr commands!"

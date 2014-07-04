@@ -52,8 +52,6 @@ class xPMUsers
 					"username" => $target->getName(),
 					"group" => $this->groups->getDefaultGroup(),
 					"permissions" => array(
-						"test.permission.t1",
-						"-test.permission.t2"
 					)
 				));
 			}
