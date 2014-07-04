@@ -5,6 +5,7 @@ namespace _64FF00\xPermsMgr;
 use pocketmine\event\Listener;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
@@ -43,9 +44,19 @@ class xPMListener implements Listener
 		}
 	}
 	
+	public function onLevelChange(EntityLevelChangeEvent $event)
+	{
+		if($event->getEntity() instanceof Player)
+		{
+			$this->users->setPermissions($event->getEntity(), $event->getTarget()->getName());
+		
+			$this->users->setNameTag($event->getEntity(), $event->getTarget()->getName());
+		}
+	}
+	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
-		$group = $this->users->getGroup($event->getPlayer());
+		$group = $this->users->getGroup($event->getPlayer(), $event->getPlayer()->getLevel()->getName());
 		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
@@ -70,9 +81,9 @@ class xPMListener implements Listener
 	
 	public function onPlayerJoin(PlayerJoinEvent $event)
 	{	
-		$this->users->setPermissions($event->getPlayer());
+		$this->users->setPermissions($event->getPlayer(), $event->getPlayer()->getLevel()->getName());
 		
-		$this->users->setNameTag($event->getPlayer());
+		$this->users->setNameTag($event->getPlayer(), $event->getPlayer()->getLevel()->getName());
 	}
 	
 	public function onPlayerKick(PlayerKickEvent $event)

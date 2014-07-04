@@ -50,8 +50,12 @@ class xPMUsers
 			{
 				return new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
 					"username" => $target->getName(),
-					"group" => $this->groups->getDefaultGroup(),
-					"permissions" => array(
+					"worlds" => array(
+						$this->plugin->getServer()->getDefaultLevel()->getName() => array(
+							"group" => $this->groups->getDefaultGroup(),
+							"permissions" => array(
+							),
+						)
 					)
 				));
 			}
@@ -66,33 +70,31 @@ class xPMUsers
 		));
 	}
 	
-	public function getGroup($player)
+	public function getGroup($player, $level)
 	{		
-		return $this->getConfig($player)->getAll()["group"];
+		return $this->getConfig($player)->getAll()["worlds"][$level]["group"];
 	}
 	
-	public function getNameTag($player)
+	public function getNameTag($player, $level)
 	{
-		$prefix = $this->groups->getPrefix($this->getGroup($player));
-		
-		$suffix = $this->groups->getSuffix($this->getGroup($player));
-		
+		$group = $this->getGroup($player, $level);
+
 		if($this->config->getConfig()["custom-nametag"] != null)
 		{
-			return str_replace("{PREFIX}", $prefix, str_replace(
+			return str_replace("{PREFIX}", $this->groups->getPrefix($group), str_replace(
 				"{USER_NAME}", $player->getName(), str_replace(
-					"{SUFFIX}", $suffix, $this->config->getConfig()["custom-nametag"]
+					"{SUFFIX}", $this->groups->getSuffix($group), $this->config->getConfig()["custom-nametag"]
 					)
 				)
 			);
 		}
 	}
 	
-	public function getPermissions($player)
+	public function getPermissions($player, $level)
 	{
-		$inherited_groups = $this->groups->getGroup($this->getGroup($player))["inheritance"];
+		$inherited_groups = $this->groups->getGroup($this->getGroup($player, $level))["inheritance"];
 		
-		$permissions = array_merge($this->groups->getGroup($this->getGroup($player))["permissions"], $this->getUserPermissions($player));
+		$permissions = array_merge($this->groups->getGroup($this->getGroup($player, $level))["permissions"], $this->getUserPermissions($player, $level));
 		
 		if(isset($inherited_groups) and is_array($inherited_groups))
 		{
@@ -108,9 +110,9 @@ class xPMUsers
 		return $permissions;
 	}
 	
-	public function getUserPermissions($player)
+	public function getUserPermissions($player, $level)
 	{
-		return $this->getConfig($player)->get("permissions");
+		return $this->getConfig($player)->getAll()["worlds"][$level]["permissions"];
 	}
 	
 	public function isNegative($permission)
@@ -118,19 +120,19 @@ class xPMUsers
 		return substr($permission, 1) === "-";
 	}
 	
-	public function setGroup($player, $groupName)
+	public function setGroup($player, $level, $groupName)
 	{
 		if($this->groups->isValidGroup($groupName))
 		{
-			$user_cfg = $this->getConfig($player);
+			$user_cfg = $this->getConfig($player)->getAll();
 			
-			$user_cfg->set("group", $groupName);
+			$user_cfg["worlds"][$level]["group"] = $groupName;
 			
-			$user_cfg->save();
+			$this->getConfig($player)->setAll($user_cfg);
 			
-			$this->setPermissions($player);
+			$this->setPermissions($player, $level);
 			
-			$this->setNameTag($player);
+			$this->setNameTag($player, $level);
 			
 			unset($user_cfg);
 			
@@ -140,15 +142,15 @@ class xPMUsers
 		return false;
 	}
 	
-	public function setNameTag($player)
+	public function setNameTag($player, $level)
 	{
 		if($player instanceof Player)
 		{
-			$player->setNameTag($this->getNameTag($player));
+			$player->setNameTag($this->getNameTag($player, $level));
 		}
 	}
 	
-	public function setPermissions($player)
+	public function setPermissions($player, $level)
 	{
 		if($player instanceof Player)
 		{			
@@ -159,7 +161,7 @@ class xPMUsers
 				$attachment->unsetPermission($key);
 			}	
 
-			foreach($this->getPermissions($player) as $permission)
+			foreach($this->getPermissions($player, $level) as $permission)
 			{
 				if(!$this->isNegative($permission))
 				{

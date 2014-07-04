@@ -16,7 +16,7 @@ use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat as TF;
 
 class xPermsMgr extends PluginBase implements CommandExecutor
-{
+{	
 	public function onEnable()
 	{
 		$this->load();
@@ -102,32 +102,34 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					if(count($args) > 4)
+					if(!isset($args[1]) || !isset($args[2]) || !isset($args[3]) || count($args) > 4)
 					{
-						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME> <LEVEL_NAME>");
 							
-						break;
-					}
-					
-					if(!isset($args[1]))
-					{
-						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Player.");
-						
 						break;
 					}
 					
 					$target = $this->getValidPlayer($args[1]);
 					
-					if(!isset($args[2]))
+					$group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
+
+					if($group == null)
 					{
 						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group.");
-						
+							
 						break;
 					}
 					
-					$group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
+					$level = $this->getServer()->getLevelByName($args[3]);
 					
-					$this->users->setGroup($target, $group);
+					if($level == null)
+					{
+						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Level.");
+							
+						break;
+					}
+
+					$this->users->setGroup($target, $level->getName(), $group);
 												
 					$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
 								
@@ -147,29 +149,38 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					if(count($args) > 3)
+					if(!isset($args[1]) || !isset($args[2]) || count($args) > 3)
 					{
-						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME> <LEVEL_NAME>");
 							
-						break;
-					}
-					
-					if(!isset($args[1]))
-					{
-						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group.");
-						
 						break;
 					}
 					
 					$group = $this->groups->isValidGroup($args[1]) ? $args[1] : $this->groups->getByAlias($args[1]);
+					
+					if($group == null)
+					{
+						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group.");
+							
+						break;
+					}
+					
+					$level = $this->getServer()->getLevelByName($args[2]);
+					
+					if($level == null)
+					{
+						$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Level.");
+							
+						break;
+					}
 
 					foreach($this->users->getAll() as $filename)
 					{
-						$user_cfg = $this->users->getConfig($filename);
+						$user_cfg = $this->users->getConfig($filename)->getAll();
 							
-						if($user_cfg->get("group") == $group)
+						if($user_cfg["group"] == $group)
 						{
-								$output .= "[xPermsMgr] [" . $user_cfg->get("group") . "] ". $user_cfg->get("username") . "\n";
+							$output .= "[xPermsMgr] [" . $user_cfg["worlds"][$level->getName()]["group"] . "] ". $user_cfg["username"] . "\n";
 						}
 					}
 						
