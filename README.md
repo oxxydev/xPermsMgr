@@ -11,7 +11,7 @@ Current Features
 - Uses the new API in PocketMine-MP Alpha_1.4
 - Set up permissions for different groups
 - Multi-group inheritance system
-- Multi-world support
+- Multi-world permissions
 - Custom prefix / suffix support
 - Custom nametags
 - Negative permission nodes
