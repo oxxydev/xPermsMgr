@@ -120,7 +120,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					$level = $this->getServer()->getLevelByName($args[3]);
+					$level = isset($args[3]) ? $this->getServer()->getLevelByName($args[3]) : $this->getServer()->getDefaultLevel();
 					
 					if($level == null)
 					{
@@ -149,9 +149,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					if(!isset($args[1]) || !isset($args[2]) || count($args) > 3)
+					if(!isset($args[1]) || count($args) > 3)
 					{
-						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME> <LEVEL_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME> [LEVEL_NAME]");
 							
 						break;
 					}
@@ -165,7 +165,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					$level = $this->getServer()->getLevelByName($args[2]);
+					$level = isset($args[2]) ? $this->getServer()->getLevelByName($args[2]) : $this->getServer()->getDefaultLevel();
 					
 					if($level == null)
 					{

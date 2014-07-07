@@ -48,7 +48,7 @@ class xPMUsers
 		{
 			if(!(file_exists($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml")))
 			{
-				return new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
+				$user_cfg = new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
 					"username" => $target->getName(),
 					"worlds" => array(
 						$this->plugin->getServer()->getDefaultLevel()->getName() => array(
@@ -61,9 +61,11 @@ class xPMUsers
 			}
 			else
 			{
-				return new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
+				$user_cfg = new Config($this->plugin->getDataFolder() . "players/" . strtolower($target->getName()) . ".yml", Config::YAML, array(
 				));
 			}
+
+			return $this->getWorldsData($user_cfg);
 		}
 		
 		return new Config($this->plugin->getDataFolder() . "players/" . $target, Config::YAML, array(
@@ -113,6 +115,29 @@ class xPMUsers
 	public function getUserPermissions($player, $level)
 	{
 		return $this->getConfig($player)->getAll()["worlds"][$level]["permissions"];
+	}
+	
+	public function getWorldsData($user_cfg)
+	{
+		foreach($this->plugin->getServer()->getLevels() as $level)
+		{
+			$temp_cfg = $user_cfg->getAll();
+				
+			if(!isset($temp_cfg["worlds"][$level->getName()]))
+			{
+				$temp_cfg["worlds"][$level->getName()] = array(
+					"group" => $this->groups->getDefaultGroup(),
+					"permissions" => array(
+					)
+				);
+			}
+				
+			$user_cfg->setAll($temp_cfg);
+				
+			$user_cfg->save();
+		}
+		
+		return $user_cfg;
 	}
 	
 	public function isNegative($permission)
