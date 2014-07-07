@@ -11,6 +11,7 @@ Current Features
 - Uses the new API in PocketMine-MP Alpha_1.4
 - Set up permissions for different groups
 - Multi-group inheritance system
+- Multi-world support
 - Custom prefix / suffix support
 - Custom nametags
 - Negative permission nodes
@@ -24,5 +25,5 @@ Commands
 ---------|------------|-------------
  /xpmgr groups | - | -
  /xpmgr reload | - | -
- /xpmgr setrank | [USER_NAME], [GROUP_NAME] | -
- /xpmgr users | [GROUP_NAME] | -
+ /xpmgr setrank | [USER_NAME], [GROUP_NAME], [LEVEL_NAME] | -
+ /xpmgr users | [GROUP_NAME], [LEVEL_NAME] | -
