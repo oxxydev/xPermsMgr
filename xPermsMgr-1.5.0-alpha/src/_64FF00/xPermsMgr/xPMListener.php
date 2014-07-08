@@ -11,6 +11,8 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 
+use pocketmine\level\Level;
+
 use pocketmine\utils\TextFormat as TF;
 
 class xPMListener implements Listener
@@ -48,15 +50,15 @@ class xPMListener implements Listener
 	{
 		if($event->getEntity() instanceof Player)
 		{
-			$this->users->setPermissions($event->getEntity(), $event->getTarget()->getName());
+			$this->users->setPermissions($event->getEntity(), $event->getTarget());
 		
-			$this->users->setNameTag($event->getEntity(), $event->getTarget()->getName());
+			$this->users->setNameTag($event->getEntity(), $event->getTarget());
 		}
 	}
 	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
-		$group = $this->users->getGroup($event->getPlayer(), $event->getPlayer()->getLevel()->getName());
+		$group = $this->users->getGroup($event->getPlayer(), $event->getPlayer()->getLevel());
 		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
@@ -81,9 +83,9 @@ class xPMListener implements Listener
 	
 	public function onPlayerJoin(PlayerJoinEvent $event)
 	{	
-		$this->users->setPermissions($event->getPlayer(), $event->getPlayer()->getLevel()->getName());
+		$this->users->setPermissions($event->getPlayer(), $event->getPlayer()->getLevel());
 		
-		$this->users->setNameTag($event->getPlayer(), $event->getPlayer()->getLevel()->getName());
+		$this->users->setNameTag($event->getPlayer(), $event->getPlayer()->getLevel());
 	}
 	
 	public function onPlayerKick(PlayerKickEvent $event)

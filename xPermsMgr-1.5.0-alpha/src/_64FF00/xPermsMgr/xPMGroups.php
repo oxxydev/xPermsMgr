@@ -2,6 +2,8 @@
 
 namespace _64FF00\xPermsMgr;
 
+use pocketmine\level\Level;
+
 use pocketmine\utils\Config;
 
 class xPMGroups
@@ -17,12 +19,12 @@ class xPMGroups
 	
 	public function getAlias($groupName)
 	{
-		return $this->groups[$groupName]["alias"];
+		return $this->groups->getAll()[$groupName]["alias"];
 	}
 	
 	public function getAllGroups()
 	{
-		$groups = array_keys($this->groups);
+		$groups = array_keys($this->groups->getAll());
 		
 		foreach($groups as $group)
 		{
@@ -33,29 +35,6 @@ class xPMGroups
 		}
 		
 		return $groups;
-	}
-	
-	public function getDefaultGroup()
-	{
-		foreach($this->getAllGroups() as $group)
-		{
-			if(isset($this->groups[$group]["default-group"]) and $this->groups[$group]["default-group"])
-			{
-				return $group;
-			}
-		}
-		
-		return null;
-	}
-	
-	public function getGroup($groupName)
-	{
-		if($this->isValidGroup($groupName))
-		{
-			return $this->groups[$groupName];
-		}
-		
-		return null;
 	}
 	
 	public function getByAlias($alias)
@@ -71,19 +50,62 @@ class xPMGroups
 		return null;
 	}
 	
+	public function getDefaultGroup()
+	{
+		foreach($this->getAllGroups() as $group)
+		{
+			if(isset($this->groups->getAll()[$group]["default-group"]) and $this->groups->getAll()[$group]["default-group"])
+			{
+				return $group;
+			}
+		}
+		
+		return null;
+	}
+	
+	public function getGroup($groupName)
+	{
+		if($this->isValidGroup($groupName))
+		{
+			return $this->groups->getAll()[$groupName];
+		}
+		
+		return null;
+	}
+
+	public function getGroupPermissions($groupName, $level)
+	{
+		$inherited_groups = $this->getGroup($groupName)["inheritance"];
+		
+		$permissions = $this->loadWorldsData($groupName)["worlds"][$level->getName()]["permissions"];
+		
+		if(isset($inherited_groups) and is_array($inherited_groups))
+		{
+			foreach($inherited_groups as $inherited_group)
+			{
+				if($this->isValidGroup($inherited_group) != null)
+				{
+					$permissions = array_merge($permissions, $this->loadWorldsData($inherited_group)["worlds"][$level->getName()]["permissions"]);
+				}
+			}
+		}
+		
+		return $permissions;
+	}
+	
 	public function getPrefix($groupName)
 	{
-		return $this->groups[$groupName]["prefix"];
+		return $this->groups->getAll()[$groupName]["prefix"];
 	}
 	
 	public function getSuffix($groupName)
 	{
-		return $this->groups[$groupName]["suffix"];
+		return $this->groups->getAll()[$groupName]["suffix"];
 	}
 	
 	public function isValidGroup($groupName)
 	{
-		return isset($groupName) ? isset($this->groups[$groupName]) : null;
+		return isset($groupName) ? isset($this->groups->getAll()[$groupName]) : null;
 	}
 	
 	public function isValidGroupName($groupName)
@@ -98,7 +120,29 @@ class xPMGroups
 			$this->plugin->saveResource("groups.yml");
 		}
 		
-		$this->groups = (new Config($this->plugin->getDataFolder() . "groups.yml", Config::YAML, array(
-		)))->getAll();
+		$this->groups = new Config($this->plugin->getDataFolder() . "groups.yml", Config::YAML, array(
+		));
+	}
+	
+	private function loadWorldsData($groupName)
+	{
+		foreach($this->plugin->getServer()->getLevels() as $level)
+		{
+			$temp_groups = $this->groups->getAll();
+			
+			if(!isset($temp_groups[$groupName]["worlds"][$level->getName()]))
+			{
+				$temp_groups[$groupName]["worlds"][$level->getName()] = array(
+					"permissions" => array(
+					),
+				);
+			}
+		}
+		
+		$this->groups->setAll($temp_groups);
+		
+		$this->groups->save();
+		
+		return $this->getGroup($groupName);
 	}
 }

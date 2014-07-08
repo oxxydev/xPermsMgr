@@ -6,6 +6,8 @@ use pocketmine\command\CommandSender;
 
 use pocketmine\IPlayer;
 
+use pocketmine\level\Level;
+
 use pocketmine\permission\PermissibleBase;
 use pocketmine\permission\PermissionAttachment;
 
@@ -65,7 +67,7 @@ class xPMUsers
 				));
 			}
 
-			return $this->getWorldsData($user_cfg);
+			return $this->loadWorldsData($user_cfg);
 		}
 		
 		return new Config($this->plugin->getDataFolder() . "players/" . $target, Config::YAML, array(
@@ -74,7 +76,7 @@ class xPMUsers
 	
 	public function getGroup($player, $level)
 	{		
-		return $this->getConfig($player)->getAll()["worlds"][$level]["group"];
+		return $this->getConfig($player)->getAll()["worlds"][$level->getName()]["group"];
 	}
 	
 	public function getNameTag($player, $level)
@@ -94,30 +96,15 @@ class xPMUsers
 	
 	public function getPermissions($player, $level)
 	{
-		$inherited_groups = $this->groups->getGroup($this->getGroup($player, $level))["inheritance"];
-		
-		$permissions = array_merge($this->groups->getGroup($this->getGroup($player, $level))["permissions"], $this->getUserPermissions($player, $level));
-		
-		if(isset($inherited_groups) and is_array($inherited_groups))
-		{
-			foreach($inherited_groups as $inherited_group)
-			{
-				if($this->groups->isValidGroup($inherited_group) != null)
-				{
-					$permissions = array_merge($permissions, $this->groups->getGroup($inherited_group)["permissions"]);
-				}
-			}
-		}
-		
-		return $permissions;
+		return array_merge($this->groups->getGroupPermissions($this->getGroup($player, $level), $level), $this->getUserPermissions($player, $level));
 	}
 	
 	public function getUserPermissions($player, $level)
 	{
-		return $this->getConfig($player)->getAll()["worlds"][$level]["permissions"];
+		return $this->getConfig($player)->getAll()["worlds"][$level->getName()]["permissions"];
 	}
 	
-	public function getWorldsData($user_cfg)
+	private function loadWorldsData($user_cfg)
 	{
 		foreach($this->plugin->getServer()->getLevels() as $level)
 		{
@@ -133,8 +120,6 @@ class xPMUsers
 			}
 				
 			$user_cfg->setAll($temp_cfg);
-				
-			$user_cfg->save();
 		}
 		
 		return $user_cfg;
@@ -149,11 +134,15 @@ class xPMUsers
 	{
 		if($this->groups->isValidGroup($groupName))
 		{
-			$user_cfg = $this->getConfig($player)->getAll();
+			$user_cfg = $this->getConfig($player);
 			
-			$user_cfg["worlds"][$level]["group"] = $groupName;
+			$temp_cfg = $user_cfg->getAll();
 			
-			$this->getConfig($player)->setAll($user_cfg);
+			$temp_cfg["worlds"][$level->getName()]["group"] = $groupName;
+			
+			$user_cfg->setAll($temp_cfg);
+
+			$user_cfg->save();
 			
 			$this->setPermissions($player, $level);
 			

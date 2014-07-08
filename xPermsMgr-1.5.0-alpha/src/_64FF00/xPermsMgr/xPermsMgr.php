@@ -6,6 +6,8 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
+use pocketmine\level\Level;
+
 use pocketmine\permission\PermissibleBase;
 
 use pocketmine\Player;
@@ -102,9 +104,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 					
-					if(!isset($args[1]) || !isset($args[2]) || !isset($args[3]) || count($args) > 4)
+					if(!isset($args[1]) || !isset($args[2]) || count($args) > 4)
 					{
-						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME> <LEVEL_NAME>");
+						$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setrank <USER_NAME> <GROUP_NAME> [LEVEL_NAME]");
 							
 						break;
 					}
@@ -129,7 +131,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						break;
 					}
 
-					$this->users->setGroup($target, $level->getName(), $group);
+					$this->users->setGroup($target, $level, $group);
 												
 					$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
 								
