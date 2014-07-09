@@ -93,12 +93,12 @@ class xPMGroups
 		return $permissions;
 	}
 	
-	public function getPrefix($groupName)
+	public function getGroupPrefix($groupName)
 	{
 		return $this->groups->getAll()[$groupName]["prefix"];
 	}
 	
-	public function getSuffix($groupName)
+	public function getGroupSuffix($groupName)
 	{
 		return $this->groups->getAll()[$groupName]["suffix"];
 	}

@@ -62,9 +62,9 @@ class xPMListener implements Listener
 		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
-			$format = str_replace("{PREFIX}", $this->groups->getPrefix($group), str_replace(
+			$format = str_replace("{PREFIX}", $this->groups->getGroupPrefix($group), str_replace(
 				"{USER_NAME}", $event->getPlayer()->getName(), str_replace(
-					"{SUFFIX}", $this->groups->getSuffix($group), str_replace(
+					"{SUFFIX}", $this->groups->getGroupSuffix($group), str_replace(
 						"{MESSAGE}", $event->getMessage(), $this->config->getConfig()["chat-format"]
 						)
 					)

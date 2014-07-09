@@ -1,6 +1,6 @@
 name: xPermsMgr
 main: _64FF00\xPermsMgr\xPermsMgr
-version: 1.5.0
+version: 1.5.1
 api: [1.0.0]
 load: STARTUP
 author: 64FF00
@@ -29,6 +29,9 @@ permissions:
      xpmgr.command.reload:
       default: op
       description: "Allows you to reload the config files!"
+     xpmgr.command.setperm:
+      default: op
+      description: "Allows you to set permissions for a user!"
      xpmgr.command.setrank:
       default: op
       description: "Allows you to set group for a user!"

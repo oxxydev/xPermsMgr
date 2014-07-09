@@ -29,6 +29,19 @@ class xPMUsers
 		$this->plugin = $plugin;
 	}
 	
+	public function addPermission($player, $permission, $level)
+	{
+		$user_cfg = $this->getConfig($player);
+		
+		$temp_cfg = $user_cfg->getAll();
+			
+		array_push($temp_cfg["worlds"][$level->getName()]["permissions"], $permission);
+			
+		$user_cfg->setAll($temp_cfg);
+
+		$user_cfg->save();
+	}
+	
 	public function getAll()
 	{
 		return array_diff(scandir($this->plugin->getDataFolder() . "players/"), array(".", "..", ""));
@@ -85,9 +98,9 @@ class xPMUsers
 
 		if($this->config->getConfig()["custom-nametag"] != null)
 		{
-			return str_replace("{PREFIX}", $this->groups->getPrefix($group), str_replace(
+			return str_replace("{PREFIX}", $this->groups->getGroupPrefix($group), str_replace(
 				"{USER_NAME}", $player->getName(), str_replace(
-					"{SUFFIX}", $this->groups->getSuffix($group), $this->config->getConfig()["custom-nametag"]
+					"{SUFFIX}", $this->groups->getGroupSuffix($group), $this->config->getConfig()["custom-nametag"]
 					)
 				)
 			);
@@ -97,6 +110,14 @@ class xPMUsers
 	public function getPermissions($player, $level)
 	{
 		return array_merge($this->groups->getGroupPermissions($this->getGroup($player, $level), $level), $this->getUserPermissions($player, $level));
+	}
+	
+	public function getPrefix($player, $level)
+	{		
+	}
+	
+	public function getSuffix($player, $level)
+	{		
 	}
 	
 	public function getUserPermissions($player, $level)
@@ -125,7 +146,7 @@ class xPMUsers
 		return $user_cfg;
 	}
 	
-	public function isNegative($permission)
+	private function isNegative($permission)
 	{
 		return substr($permission, 1) === "-";
 	}
@@ -186,7 +207,7 @@ class xPMUsers
 					$attachment->setPermission($permission, false);
 				}
 			}
-
+			
 			$player->recalculatePermissions();
 		}
 	}
