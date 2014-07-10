@@ -27,3 +27,13 @@ Commands
  /xpmgr reload | - | -
  /xpmgr setrank | [USER_NAME], [GROUP_NAME], [LEVEL_NAME] | -
  /xpmgr users | [GROUP_NAME], [LEVEL_NAME] | -
+
+Permissions
+===========
+
+- xpmgr.build
+- xpmgr.command
+- xpmgr.command.groups
+- xpmgr.command.reload
+- xpmgr.command.setrank
+- xpmgr.command.users
