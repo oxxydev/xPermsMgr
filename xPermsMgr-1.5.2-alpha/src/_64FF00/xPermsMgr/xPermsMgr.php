@@ -192,7 +192,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 							
 			default:
 							
-				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setperm / setrank / users>");
+				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
 		}
 		
 		return true;
