@@ -171,7 +171,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 				{
 					$user_cfg = $this->users->getConfig($filename)->getAll();
 							
-					if($user_cfg["group"] == $group)
+					if($user_cfg["worlds"][$level->getName()]["group"] == $group)
 					{
 						$output .= "[xPermsMgr] [" . $user_cfg["worlds"][$level->getName()]["group"] . "] ". $user_cfg["username"] . "\n";
 					}
