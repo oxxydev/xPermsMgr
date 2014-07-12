@@ -6,9 +6,13 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
+use pocketmine\IPlayer;
+
 use pocketmine\level\Level;
 
 use pocketmine\permission\PermissibleBase;
+
+use pocketmine\OfflinePlayer;
 
 use pocketmine\Player;
 
@@ -21,7 +25,9 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 {	
 	public function onEnable()
 	{
-		$this->load();
+		$this->config = new xPMConfiguration($this);
+		$this->groups = new xPMGroups($this);
+		$this->users = new xPMUsers($this);
 		
 		$this->getServer()->getPluginManager()->registerEvents(new xPMListener($this), $this);
 	}
@@ -56,7 +62,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 		return $player instanceof Player ? $player : $this->getServer()->getOfflinePlayer($username);
 	}
 	
-	private function load()
+	private function reload()
 	{
 		$this->config = new xPMConfiguration($this);
 		$this->groups = new xPMGroups($this);
@@ -92,10 +98,52 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 					
 			case "reload":
 				
-				$this->load();
+				$this->reload();
 							
-				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Successfully reloaded the config files.");
+				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Successfully reloaded the config files and player permissions.");
 							
+				break;
+				
+			case "setperm":
+			
+				if(!isset($args[1]) || !isset($args[2]) || count($args) > 4)
+				{
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setperm <USER_NAME / GROUP_NAME> <PERMISSION> [LEVEL_NAME]");
+							
+					break;
+				}
+				
+				$target = $this->groups->isValidGroup($args[1]) ? $args[1] : $this->groups->getByAlias($args[1]);
+				
+				if(!isset($target))
+				{
+					$target = $this->getValidPlayer($args[1]);
+				}
+				
+				$level = isset($args[3]) ? $this->getServer()->getLevelByName($args[3]) : $this->getServer()->getDefaultLevel();
+					
+				if($level == null)
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Level.");
+							
+					break;
+				}
+				
+				if($target instanceof IPlayer)
+				{
+					$this->users->addPermission($target, strtolower($args[2]), $level);
+					
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Set the permission for " . $target->getName() . " successfully.");
+				}
+				else
+				{
+					$this->groups->addGroupPermission($target, strtolower($args[2]), $level);
+					
+					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Set the permission for the group: " . $target . " successfully.");
+				}
+				
+				$this->reload();
+			
 				break;
 						
 			case "setrank":
@@ -107,7 +155,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 					break;
 				}
 					
-				$target = $this->getValidPlayer($args[1]);
+				$player = $this->getValidPlayer($args[1]);
 					
 				$group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
 
@@ -127,21 +175,21 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 					break;
 				}
 
-				$this->users->setGroup($target, $level, $group);
+				$this->users->setGroup($player, $level, $group);
 												
 				$message = str_replace("{RANK}", strtolower($group), $this->config->getConfig()["message-on-rank-change"]);
 								
-				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Set " . $target->getName() . "'s rank successfully.");
+				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Set " . $player->getName() . "'s rank successfully.");
 						
-				if($target instanceof Player)
+				if($player instanceof Player)
 				{
-					$target->sendMessage(TF::GREEN . "[xPermsMgr] " . $message);
+					$player->sendMessage(TF::GREEN . "[xPermsMgr] " . $message);
 				}		
 					
 				break;
 						
 			case "users":
-					
+
 				if(!isset($args[1]) || count($args) > 3)
 				{
 					$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr users <GROUP_NAME> [LEVEL_NAME]");

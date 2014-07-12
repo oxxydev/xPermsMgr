@@ -17,6 +17,17 @@ class xPMGroups
 		$this->load();
 	}
 	
+	public function addGroupPermission($groupName, $permission, $level)
+	{
+		$temp_groups = $this->groups->getAll();
+		
+		array_push($temp_groups[$groupName]["worlds"][$level->getName()]["permissions"], $permission);
+		
+		$this->groups->setAll($temp_groups);
+
+		$this->groups->save();
+	}
+	
 	public function getAlias($groupName)
 	{
 		return $this->groups->getAll()[$groupName]["alias"];
