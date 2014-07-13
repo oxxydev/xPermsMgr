@@ -25,6 +25,7 @@ Commands
 ---------|------------|-------------
  /xpmgr groups | - | -
  /xpmgr reload | - | -
+ /xpmgr setperm | [USER_NAME / GROUP_NAME], [PERMISSION], [LEVEL_NAME] | -
  /xpmgr setrank | [USER_NAME], [GROUP_NAME], [LEVEL_NAME] | -
  /xpmgr users | [GROUP_NAME], [LEVEL_NAME] | -
 
