@@ -36,5 +36,6 @@ Permissions
 - xpmgr.command
 - xpmgr.command.groups
 - xpmgr.command.reload
+- xpmgr.command.setperm
 - xpmgr.command.setrank
 - xpmgr.command.users
