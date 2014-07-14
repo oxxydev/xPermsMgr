@@ -60,5 +60,5 @@ Owner:
     permissions:
     - pocketmine.broadcast
     - pocketmine.command
-    - xpmgr.command
+    - xpmgr.command.*
 ...

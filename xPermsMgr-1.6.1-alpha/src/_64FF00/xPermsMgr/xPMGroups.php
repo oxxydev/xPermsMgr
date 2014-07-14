@@ -14,7 +14,7 @@ class xPMGroups
 	{
 		$this->plugin = $plugin;
 		
-		$this->load();
+		$this->reload();
 	}
 	
 	public function addGroupPermission($groupName, $permission, $level)
@@ -124,7 +124,7 @@ class xPMGroups
 		return preg_match("/^[0-9a-zA-Z\xA1-\xFE]$/", $groupName);
 	}
 	
-	public function load()
+	public function reload()
 	{
 		if(!(file_exists($this->plugin->getDataFolder() . "groups.yml")))
 		{

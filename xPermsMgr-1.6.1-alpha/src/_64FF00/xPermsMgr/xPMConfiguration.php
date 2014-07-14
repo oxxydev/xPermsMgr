@@ -12,10 +12,10 @@ class xPMConfiguration
 	{
 		$this->plugin = $plugin;
 		
-		$this->load();
+		$this->reload();
 	}
 	
-	public function load()
+	public function reload()
 	{
 		if(!(file_exists($this->plugin->getDataFolder() . "config.yml")))
 		{
@@ -31,12 +31,17 @@ class xPMConfiguration
 		
 		if(!$this->config->get("custom-nametag"))
 		{
-			$this->config->set("chat-format", "<{PREFIX} {USER_NAME}>");
+			$this->config->set("custom-nametag", "<{PREFIX} {USER_NAME}>");
 		}
 		
 		if(!$this->config->get("message-on-insufficient-build-permission"))
 		{
 			$this->config->set("message-on-insufficient-build-permission", "You don't have permission to build here.");
+		}
+		
+		if(!$this->config->get("message-on-insufficient-permissions"))
+		{
+			$this->config->set("message-on-insufficient-permissions", "You don't have permission to use this command.");
 		}
 		
 		if(!$this->config->get("message-on-rank-change"))

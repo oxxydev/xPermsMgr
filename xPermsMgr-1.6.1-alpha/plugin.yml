@@ -1,7 +1,7 @@
 name: xPermsMgr
 main: _64FF00\xPermsMgr\xPermsMgr
-version: 1.6.0
-api: [1.0.0]
+version: 1.6.1
+api: [1.1.0]
 load: STARTUP
 author: 64FF00
 description: Custom Permissions Plugin for PocketMine!
@@ -9,23 +9,25 @@ website: https://github.com/64FF00/xPermsMgr
 commands:
  xpmgr:
   description: Provides access to xPermsMgr commands.
-  usage: "/xpmgr <groups / reload / setrank / users>"
-  permission: xpmgr.command
+  usage: "/xpmgr <groups / reload / setperm / setrank / users>"
 permissions:
- xpmgr:
+ xpmgr.*:
   default: op
   description: "Allows you to use all the xPermsMgr things!"
   children:
    xpmgr.build:
     default: true
     description: "Allows you to break and place blocks!"
-   xpmgr.command:
+   xpmgr.command.*:
     default: op
     description: "Allows you to use all the xPermsMgr commands!"
     children:
      xpmgr.command.groups:
       default: op
       description: "Allows you to see the list of all groups!"
+     xpmgr.command.help:
+      default: op
+      description: "Allows you to see the usage of the plugin!"
      xpmgr.command.reload:
       default: op
       description: "Allows you to reload the config files!"
@@ -38,3 +40,6 @@ permissions:
      xpmgr.command.users:
       default: op
       description: "Allows you to see the list of all users!"
+     xpmgr.command.version:
+      default: op
+      description: "Allows you to see the version of the plugin!"

@@ -22,7 +22,9 @@ use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat as TF;
 
 class xPermsMgr extends PluginBase implements CommandExecutor
-{	
+{
+	private $output = "";
+	
 	public function onEnable()
 	{
 		$this->config = new xPMConfiguration($this);
@@ -34,56 +36,30 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 	
 	public function onCommand(CommandSender $sender, Command $cmd, $label, array $args)
 	{
-		if(isset($args[0]))
+		if(!isset($args[0]))
 		{
-			switch($cmd->getName())
+			if(!$sender->hasPermission("xpmgr.command.version"))
 			{
-				case "xpmgr":
-				
-					return $this->xPermsMgrCommand($sender, $cmd, $label, $args);
-				
-				default:
-				
-					return false;
+				$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+				return true;
 			}
-		}
-		else
-		{
+			
 			$sender->sendMessage(TF::GREEN . "[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . " by " . $this->getDescription()->getAuthors()[0] . "!");
 			
 			return true;
 		}
-	}
-	
-	private function getValidPlayer($username)
-	{
-		$player = $this->getServer()->getPlayer($username);
-		
-		return $player instanceof Player ? $player : $this->getServer()->getOfflinePlayer($username);
-	}
-	
-	private function reload()
-	{
-		$this->config = new xPMConfiguration($this);
-		$this->groups = new xPMGroups($this);
-		$this->users = new xPMUsers($this);
-		
-		foreach($this->getServer()->getOnlinePlayers() as $player)
-		{
-			foreach($this->getServer()->getLevels() as $level)
-			{
-				$this->users->setPermissions($player, $level);
-			}
-		}
-	}
-	
-	private function xPermsMgrCommand(CommandSender $sender, Command $cmd, $label, array $args)
-	{
-		$output = "";
 		
 		switch($args[0])
 		{				
 			case "groups":
+			
+				if(!$sender->hasPermission("xpmgr.command.groups"))
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+					break;
+				}
 					
 				foreach($this->groups->getAllGroups() as $group)
 				{
@@ -98,6 +74,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 					
 			case "reload":
 				
+				if(!$sender->hasPermission("xpmgr.command.reload"))
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+					break;
+				}
+				
 				$this->reload();
 							
 				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Successfully reloaded the config files and player permissions.");
@@ -105,6 +88,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 				break;
 				
 			case "setperm":
+			
+				if(!$sender->hasPermission("xpmgr.command.setperm"))
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+					break;
+				}
 			
 				if(!isset($args[1]) || !isset($args[2]) || count($args) > 4)
 				{
@@ -147,6 +137,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 				break;
 						
 			case "setrank":
+			
+				if(!$sender->hasPermission("xpmgr.command.setrank"))
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+					break;
+				}
 					
 				if(!isset($args[1]) || !isset($args[2]) || count($args) > 4)
 				{
@@ -189,6 +186,13 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 				break;
 						
 			case "users":
+			
+				if(!$sender->hasPermission("xpmgr.command.users"))
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+					break;
+				}
 
 				if(!isset($args[1]) || count($args) > 3)
 				{
@@ -239,11 +243,41 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 				break;
 							
 			default:
+			
+				if(!$sender->hasPermission("xpmgr.command.help"))
+				{
+					$sender->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-permissions"]);
+					
+					break;
+				}
 							
-				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setrank / users>");
+				$sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr <groups / reload / setperm / setrank / users>");
+				
+				break;
 		}
 		
 		return true;
+	}
+	
+	private function getValidPlayer($username)
+	{
+		$player = $this->getServer()->getPlayer($username);
+		
+		return $player instanceof Player ? $player : $this->getServer()->getOfflinePlayer($username);
+	}
+	
+	private function reload()
+	{
+		$this->config->reload();
+		$this->groups->reload();
+		
+		foreach($this->getServer()->getOnlinePlayers() as $player)
+		{
+			foreach($this->getServer()->getLevels() as $level)
+			{
+				$this->users->setPermissions($player, $level);
+			}
+		}
 	}
 	
 	public function onDisable()
