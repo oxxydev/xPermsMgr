@@ -27,15 +27,18 @@ Commands
  /xpmgr reload | - | -
  /xpmgr setperm | [USER_NAME / GROUP_NAME], [PERMISSION], [LEVEL_NAME] | -
  /xpmgr setrank | [USER_NAME], [GROUP_NAME], [LEVEL_NAME] | -
- /xpmgr users | [GROUP_NAME], [LEVEL_NAME] | -
+ /xpmgr users | [USER_NAME / GROUP_NAME], [LEVEL_NAME] | -
 
 Permissions
 ===========
 
+- xpmgr.*
 - xpmgr.build
-- xpmgr.command
+- xpmgr.command.*
 - xpmgr.command.groups
+- xpmgr.command.help
 - xpmgr.command.reload
 - xpmgr.command.setperm
 - xpmgr.command.setrank
 - xpmgr.command.users
+- xpmgr.command.version
