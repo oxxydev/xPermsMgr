@@ -41,5 +41,5 @@ permissions:
       default: op
       description: "Allows you to check a user's group or see the list of all users!"
      xpmgr.command.version:
-      default: op
+      default: true
       description: "Allows you to see the version of the plugin!"

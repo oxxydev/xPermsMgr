@@ -27,10 +27,12 @@ class xPMListener implements Listener
 	}
 	
 	public function onBlockBreak(BlockBreakEvent $event)
-	{	
-		if(!$event->getPlayer()->hasPermission("xpmgr.build"))
+	{
+		$player = $event->getPlayer();
+		
+		if(!$player->hasPermission("xpmgr.build"))
 		{
-			$event->getPlayer()->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-build-permission"]);
+			$player->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-build-permission"]);
 			
 			$event->setCancelled(true);
 		}
@@ -38,9 +40,11 @@ class xPMListener implements Listener
 	
 	public function onBlockPlace(BlockPlaceEvent $event)
 	{	
-		if(!$event->getPlayer()->hasPermission("xpmgr.build"))
+		$player = $event->getPlayer();
+		
+		if(!$player->hasPermission("xpmgr.build"))
 		{
-			$event->getPlayer()->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-build-permission"]);
+			$player->sendMessage(TF::RED . "[xPermsMgr] " . $this->config->getConfig()["message-on-insufficient-build-permission"]);
 			
 			$event->setCancelled(true);
 		}
@@ -58,12 +62,14 @@ class xPMListener implements Listener
 	
 	public function onPlayerChat(PlayerChatEvent $event)
 	{
-		$group = $this->users->getGroup($event->getPlayer(), $event->getPlayer()->getLevel());
+		$player = $event->getPlayer();
+		
+		$group = $this->users->getGroup($player, $player->getLevel());
 		
 		if($this->config->getConfig()["chat-format"] != null)
 		{
 			$format = str_replace("{PREFIX}", $this->groups->getGroupPrefix($group), str_replace(
-				"{USER_NAME}", $event->getPlayer()->getName(), str_replace(
+				"{USER_NAME}", $player->getName(), str_replace(
 					"{SUFFIX}", $this->groups->getGroupSuffix($group), str_replace(
 						"{MESSAGE}", $event->getMessage(), $this->config->getConfig()["chat-format"]
 						)
@@ -75,26 +81,32 @@ class xPMListener implements Listener
 		{
 			$this->plugin->getLogger()->alert("Invalid chat-format given, using the default one");
 			
-			$format = "<" . $event->getPlayer()->getName() . "> " . $event->getMessage();
+			$format = "<" . $player->getName() . "> " . $event->getMessage();
 		}
 		
 		$event->setFormat($format);
 	}
 	
 	public function onPlayerJoin(PlayerJoinEvent $event)
-	{	
-		$this->users->setPermissions($event->getPlayer(), $event->getPlayer()->getLevel());
+	{
+		$player = $event->getPlayer();
 		
-		$this->users->setNameTag($event->getPlayer(), $event->getPlayer()->getLevel());
+		$this->users->setPermissions($player, $player->getLevel());	
+		
+		$this->users->setNameTag($player, $player->getLevel());		
 	}
 	
 	public function onPlayerKick(PlayerKickEvent $event)
 	{	
-		$event->getPlayer()->removeAttachment($this->users->getAttachment($event->getPlayer()));
+		$player = $event->getPlayer();
+		
+		$player->removeAttachment($this->users->getAttachment($player));
 	}
 	
 	public function onPlayerQuit(PlayerQuitEvent $event)
 	{	
-		$event->getPlayer()->removeAttachment($this->users->getAttachment($event->getPlayer()));
+		$player = $event->getPlayer();
+		
+		$player->removeAttachment($this->users->getAttachment($player));
 	}
 }

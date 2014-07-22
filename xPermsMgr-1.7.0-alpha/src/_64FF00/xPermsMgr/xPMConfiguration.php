@@ -34,11 +34,6 @@ class xPMConfiguration
 			$this->config->set("custom-nametag", "<{PREFIX} {USER_NAME}>");
 		}
 		
-		if(!$this->config->get("enable-op-override"))
-		{
-			$this->config->set("enable-op-override", true);
-		}
-		
 		if(!$this->config->get("message-on-insufficient-build-permission"))
 		{
 			$this->config->set("message-on-insufficient-build-permission", "You don't have permission to build here.");
