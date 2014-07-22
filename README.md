@@ -1,6 +1,8 @@
 xPermsMgr
 =========
 
+![xPermsMgr](https://raw.githubusercontent.com/64FF00/xPermsMgr/master/xPermsMgr-1.7.0-alpha/xPermsMgr.png)
+
 xPermsMgr is a custom permissions plugin for PocketMine. 
 
 Please do NOT redistribute this plugin, or copy its source code without our permission.
