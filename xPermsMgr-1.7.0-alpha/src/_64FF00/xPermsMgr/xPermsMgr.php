@@ -38,7 +38,7 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 	
 		if(!isset($args[0]))
 		{
-			if(!$this->checkPermission($sender, "xpmgr.command.check")) return true;
+			if(!$this->checkPermission($sender, "xpmgr.command.version")) return true;
 			
 			$sender->sendMessage(TF::GREEN . "[xPermsMgr] xPermsMgr v" . $this->getDescription()->getVersion() . " by " . $this->getDescription()->getAuthors()[0] . "!");
 			
