@@ -62,6 +62,27 @@ class xPermsMgr extends PluginBase implements CommandExecutor
 						
 				break;
 					
+                          case "create":
+			
+				if(!$this->checkPermission($sender, "xpmgr.command.create")) break;
+					
+				
+
+                                if(!isset($args[1]){
+                                   $sender->sendMessage(TF::GREEN . "[xPermsMgr] Usage: /xpmgr setperm <USER_NAME / GROUP_NAME> <PERMISSION> [LEVEL_NAME]");
+					break;
+				}
+                     $group = $this->groups->isValidGroup($args[2]) ? $args[2] : $this->groups->getByAlias($args[2]);
+
+				if(!isset($group))
+				{
+					//$sender->sendMessage(TF::RED . "[xPermsMgr] ERROR: Invalid Group.");
+							
+					break;
+				}
+				break;
+					
+
 			case "reload":
 				
 				if(!$this->checkPermission($sender, "xpmgr.command.reload")) break;
